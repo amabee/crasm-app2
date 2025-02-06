@@ -8,8 +8,10 @@ if (!isset($_SESSION['user_id'])) {
 }
 if (isset($_SESSION['role_id'])) {
     switch ($_SESSION['role_id']) {
+        case 1:
+            header("Location: ../super_admin/dashboard.php");
+            break;
         case 2:
-            header("Location: ../admin/dashboard.php");
             break;
         case 3:
             header("Location: ../regional-director/dashboard.php");
@@ -36,9 +38,11 @@ $systemInfo = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
 $sql = "SELECT u.id, u.username, u.email, u.first_name, u.middle_name, u.last_name, u.image, u.status, r.role_name as role_name 
         FROM users u 
-        LEFT JOIN roles r ON u.role_id = r.id 
+        LEFT JOIN roles r ON u.role_id = r.id
+        WHERE r.id != 1 AND u.id != :user_id
         ORDER BY u.created_at DESC";
 $stmt = $conn->prepare($sql);
+$stmt->bindParam(":user_id", $_SESSION['user_id']);
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -310,17 +314,17 @@ if (isset($_POST['logout'])) {
                 <ul id="accordion-menu">
                     <li>
                         <a href="dashboard.php" class="dropdown-toggle no-arrow">
+                            <span class="micon bi bi-person-lines-fill"></span><span class="mtext">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="user-control.php" class="dropdown-toggle no-arrow">
                             <span class="micon bi bi-person-lines-fill"></span><span class="mtext">User Control</span>
                         </a>
                     </li>
                     <li>
                         <a href="account_settings.php" class="dropdown-toggle no-arrow">
                             <span class="micon bi bi-gear"></span><span class="mtext">Account Settings</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="system_settings.php" class="dropdown-toggle no-arrow">
-                            <span class="micon bi bi-gear-wide-connected"></span><span class="mtext">System Settings</span>
                         </a>
                     </li>
                 </ul>
@@ -444,7 +448,6 @@ if (isset($_POST['logout'])) {
                             <label for="role" class="form-label">Role *</label>
                             <select class="form-control" id="role" name="role" required>
                                 <option value="">Select a role</option>
-                                <option value="Admin">Admin</option>
                                 <option value="Regional Director">Regional Director</option>
                                 <option value="OIC / CAO">OIC / CAO</option>
                                 <option value="Collecting Officer">Collecting Officer</option>
@@ -493,7 +496,6 @@ if (isset($_POST['logout'])) {
                             <label for="edit_role" class="form-label">Role *</label>
                             <select class="form-control" id="edit_role" name="role" required>
                                 <option value="">Select a role</option>
-                                <option value="Admin">Admin</option>
                                 <option value="Regional Director">Regional Director</option>
                                 <option value="OIC / CAO">OIC / CAO</option>
                                 <option value="Collecting Officer">Collecting Officer</option>

@@ -42,13 +42,13 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
 if (isset($_POST['logout'])) {
     session_unset();
     session_destroy();
     header("Location: ../index.php");
     exit();
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -94,6 +94,26 @@ if (isset($_POST['logout'])) {
         href="../src/plugins/datatables/css/responsive.bootstrap4.min.css" />
     <link rel="stylesheet" type="text/css" href="../vendors/styles/style.css" />
 
+    <style>
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+        }
+
+        .dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .dropzone:hover {
+            border-color: #666;
+        }
+    </style>
 
     <script src="process.js" defer></script>
 
@@ -150,7 +170,6 @@ if (isset($_POST['logout'])) {
                             </button>
                         </form>
                     </div>
-
                 </div>
             </div>
             <div class="github-link">
@@ -294,7 +313,7 @@ if (isset($_POST['logout'])) {
 
     <div class="left-side-bar">
         <div class="brand-logo">
-            <a href="index.html">
+            <a href="dashboard.php">
                 <img src=<?php echo $systemInfo['app_logo'] ?> alt="" class="dark-logo" />
                 <img
                     src="../vendors/images/deskapp-logo-white.svg"
@@ -331,187 +350,54 @@ if (isset($_POST['logout'])) {
 
     <div class="main-container">
         <div class="xs-pd-20-10 pd-ltr-20">
-
-            <div class="card-box pb-10">
-                <div class="h5 pd-20 mb-0 d-flex justify-content-between align-items-center">
-                    <span>User Control</span>
-                    <button class="btn btn-primary" class="btn-block"
-                        data-toggle="modal"
-                        data-target="#userModal"
-                        type="button">
-                        <i class="icon-copy dw dw-add"></i> Add User
-                    </button>
+            <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+                <div class="card-header bg-white">
+                    <h4>System Settings</h4>
                 </div>
-                <table class="data-table table stripe hover nowrap">
-                    <thead>
-                        <tr>
-                            <th class="d-none">ID</th>
-                            <th class="table-plus">Firstname</th>
-                            <th>Middlename</th>
-                            <th>Lastname</th>
-                            <th>Email</th>
-                            <th>Username</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th class="datatable-nosort">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($users as $user): ?>
-                            <tr>
-                                <td class="d-none"><?php echo htmlspecialchars($user['id'] ?? ''); ?></td>
-                                <td class="table-plus">
-                                    <div class="name-avatar d-flex align-items-center">
-                                        <div class="avatar mr-2 flex-shrink-0">
-                                            <img
-                                                src="<?php echo htmlspecialchars($user['image'] ?? 'vendors/images/default-avatar.jpg'); ?>"
-                                                class="border-radius-100 shadow"
-                                                width="40"
-                                                height="40"
-                                                alt="User avatar" />
-                                        </div>
-                                        <div class="txt">
-                                            <div class="weight-600"><?php echo htmlspecialchars($user['first_name']); ?></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td><?php echo htmlspecialchars($user['middle_name'] ?? ''); ?></td>
-                                <td><?php echo htmlspecialchars($user['last_name']); ?></td>
-                                <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                <td><?php echo htmlspecialchars($user['username']); ?></td>
-                                <td><?php echo htmlspecialchars($user['role_name']); ?></td>
-                                <td>
-                                    <span
-                                        class="badge badge-pill"
-                                        data-bgcolor="<?php echo $user['status'] == strtolower('active') ? '#28a745' : '#dc3545'; ?>"
-                                        data-color="#fff">
-                                        <?php echo $user['status'] == strtolower('Active') ? strtolower('Active') : strtolower('Inactive'); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php
+                <div class="card-body">
+                    <form id="systemSettingsForm" method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="app_name" class="form-label">Application Name</label>
+                                <input type="text" class="form-control" id="app_name" name="app_name"
+                                    value="<?php echo htmlspecialchars($systemInfo['app_name'] ?? ''); ?>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="title" name="title"
+                                    value="<?php echo htmlspecialchars($systemInfo['title'] ?? ''); ?>" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="front_title" class="form-label">Front Title</label>
+                            <input type="text" class="form-control" id="front_title" name="front_title"
+                                value="<?php echo htmlspecialchars($systemInfo['front_title'] ?? ''); ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="favicon" class="form-label">Favicon</label>
+                            <div class="dropzone" id="faviconDropzone">
+                                <p>Drag & drop favicon here or click to select</p>
+                                <input type="file" id="favicon" name="favicon" accept="image/*" style="display: none;">
+                            </div>
+                            <?php if (!empty($systemInfo['favicon'])): ?>
+                                <img src="<?php echo htmlspecialchars($systemInfo['favicon']); ?>"
+                                    alt="Current Favicon" class="preview-image" id="faviconPreview">
+                            <?php endif; ?>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app_logo" class="form-label">Application Logo</label>
+                            <div class="dropzone" id="logoDropzone">
+                                <p>Drag & drop logo here or click to select</p>
+                                <input type="file" id="app_logo" name="app_logo" accept="image/*" style="display: none;">
+                            </div>
+                            <?php if (!empty($systemInfo['app_logo'])): ?>
+                                <img src="<?php echo htmlspecialchars($systemInfo['app_logo']); ?>"
+                                    alt="Current Logo" class="preview-image" id="logoPreview">
+                            <?php endif; ?>
+                        </div>
 
-                                    if ($user['role_name'] !== "Super Admin"):
-                                    ?>
-                                        <div class='table-actions'>
-                                            <a href='javascript:;' data-color='#265ed7' onclick='editUser(<?php echo (int)$user["id"]; ?>)'>
-                                                <i class='icon-copy dw dw-edit2'></i>
-                                            </a>
-                                            <a href='#' type='button' data-color='#e95959' onclick='deleteUser(<?php echo (int)$user["id"]; ?>)'>
-                                                <i class='icon-copy dw dw-delete-3'></i>
-                                            </a>
-                                        </div>
-                                    <?php endif; ?>
-                                </td>
-
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- create modal -->
-    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="userModalLabel">Add New User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="userForm" method="POST" class="add_user">
-                        <div class="mb-3">
-                            <label for="firstname" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="firstname" name="firstname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="middlename" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="middlename" name="middlename">
-                        </div>
-                        <div class="mb-3">
-                            <label for="lastname" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="lastname" name="lastname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Role *</label>
-                            <select class="form-control" id="role" name="role" required>
-                                <option value="">Select a role</option>
-                                <option value="Admin">Admin</option>
-                                <option value="Regional Director">Regional Director</option>
-                                <option value="OIC / CAO">OIC / CAO</option>
-                                <option value="Collecting Officer">Collecting Officer</option>
-                                <option value="Provincial Worker">Provincial Worker</option>
-                            </select>
-                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="saveUser">Save User</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- edit Modal -->
-    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="editUserForm" method="POST">
-                        <input type="hidden" id="edit_user_id" name="user_id">
-                        <div class="mb-3">
-                            <label for="edit_firstname" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="edit_firstname" name="firstname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_middlename" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="edit_middlename" name="middlename">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_lastname" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="edit_lastname" name="lastname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="edit_email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_role" class="form-label">Role *</label>
-                            <select class="form-control" id="edit_role" name="role" required>
-                                <option value="">Select a role</option>
-                                <option value="Admin">Admin</option>
-                                <option value="Regional Director">Regional Director</option>
-                                <option value="OIC / CAO">OIC / CAO</option>
-                                <option value="Collecting Officer">Collecting Officer</option>
-                                <option value="Provincial Worker">Provincial Worker</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status *</label>
-                            <select class="form-control" id="edit_status" name="status" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="updateUser">Update User</button>
                 </div>
             </div>
         </div>
@@ -529,30 +415,37 @@ if (isset($_POST['logout'])) {
     <script src="../vendors/scripts/dashboard3.js"></script>
     <script src="../vendors/scripts/datatable-setting.js"></script>
 
-
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const userForm = document.getElementById("userForm");
-            const editUserForm = document.getElementById("editUserForm");
-            const saveUserBtn = document.getElementById("saveUser");
-            const updateUserBtn = document.getElementById("updateUser");
+        document.addEventListener('DOMContentLoaded', function() {
+            const accountSettingsForm = document.getElementById('accountSettingsForm');
+            if (accountSettingsForm) {
+                accountSettingsForm.addEventListener('submit', handleAccountSettingsSubmit);
+            }
+        });
 
-            saveUserBtn.addEventListener("click", function(e) {
-                e.preventDefault();
-                if (validateForm(userForm)) {
-                    handleFormSubmit(userForm);
-                }
-            });
+        document.getElementById('confirm_password')?.addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
 
-            updateUserBtn.addEventListener("click", function(e) {
-                e.preventDefault();
-                if (validateForm(editUserForm)) {
-                    handleEditFormSubmit(editUserForm);
+            if (password || confirmPassword) {
+                if (password !== confirmPassword) {
+                    this.setCustomValidity("Passwords don't match");
+                } else {
+                    this.setCustomValidity('');
                 }
-            });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDropzone('faviconDropzone', 'favicon', 'faviconPreview');
+            setupDropzone('logoDropzone', 'app_logo', 'logoPreview');
+
+            const systemSettingsForm = document.getElementById('systemSettingsForm');
+            if (systemSettingsForm) {
+                systemSettingsForm.addEventListener('submit', handleSystemSettingsSubmit);
+            }
         });
     </script>
-
 
 </body>
 

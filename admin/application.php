@@ -430,7 +430,7 @@
         </div>
     </div>
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
@@ -453,16 +453,10 @@
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="editSuffix" class="form-label">Suffix</label>
-                        <div class="col-md-6 mb-3">
-                            <label for="editSuffix" class="form-label">Suffix</label>
                             <input type="text" class="form-control" id="editSuffix" name="suffix">
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="editEmail" name="email" required>
-                        </div>
                         <div class="col-md-6 mb-3">
                             <label for="editProvincialOffice" class="form-label">Provincial Office</label>
                             <input type="text" class="form-control" id="editProvincialOffice" name="provincial_office">
@@ -592,7 +586,7 @@
 </div>
     <!-- modal -->
     <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="userModalLabel">Add New User</h5>
@@ -600,37 +594,152 @@
                 </div>
                 <div class="modal-body">
                     <form id="userForm">
-                        <div class="mb-3">
-                            <label for="firstname" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="firstname" name="firstname" required>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="firstname" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstname" name="firstname" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="middlename" class="form-label">Middle Name</label>
+                                <input type="text" class="form-control" id="middlename" name="middlename">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="lastname" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastname" name="lastname" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="suffix" class="form-label">Suffix</label>
+                                <input type="text" class="form-control" id="suffix" name="suffix">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="middlename" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="middlename" name="middlename">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="provincialOffice" class="form-label">Provincial Office</label>
+                                <input type="text" class="form-control" id="provincialOffice" name="provincial_office">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="lastname" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="lastname" name="lastname" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReceivedPO" class="form-label">Date Received by PO from the SO Applicant</label>
+                                <input type="date" class="form-control" id="dateReceivedPO" name="date_received_po">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="typeOfApplication" class="form-label">Type of Application</label>
+                                <input type="text" class="form-control" id="typeOfApplication" name="type_of_application">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="suffix" class="form-label">Suffix</label>
-                            <input type="text" class="form-control" id="suffix" name="suffix">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateOfPayment" class="form-label">Date of Payment</label>
+                                <input type="date" class="form-control" id="dateOfPayment" name="date_of_payment">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="orNumber" class="form-label">O.R. Number</label>
+                                <input type="text" class="form-control" id="orNumber" name="or_number">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateTransmittedRO" class="form-label">Date Transmitted to RO</label>
+                                <input type="date" class="form-control" id="dateTransmittedRO" name="date_transmitted_ro">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReceivedRO" class="form-label">Date Received by RO</label>
+                                <input type="date" class="form-control" id="dateReceivedRO" name="date_received_ro">
+                            </div>
                         </div>
-                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReviewedRO" class="form-label">Date Reviewed by RO Screener/SOIS Focal</label>
+                                <input type="date" class="form-control" id="dateReviewedRO" name="date_reviewed_ro">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateForwardedOIC" class="form-label">Date Forwarded to the Office of OIC / CAO</label>
+                                <input type="date" class="form-control" id="dateForwardedOIC" name="date_forwarded_oic">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReviewedOIC" class="form-label">Date Reviewed by OIC CRASD</label>
+                                <input type="date" class="form-control" id="dateReviewedOIC" name="date_reviewed_oic">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="feedbacks" class="form-label">FEEDBACKS</label>
+                                <textarea class="form-control" id="feedbacks" name="feedbacks"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateForwardedORD" class="form-label">Date Forwarded to ORD</label>
+                                <input type="date" class="form-control" id="dateForwardedORD" name="date_forwarded_ord">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateApprovedRD" class="form-label">Date Application Approved by Regional Director</label>
+                                <input type="date" class="form-control" id="dateApprovedRD" name="date_approved_rd">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReturnedRO" class="form-label">Date Returned to RO Focal for Issuance of CRASM</label>
+                                <input type="date" class="form-control" id="dateReturnedRO" name="date_returned_ro">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateTransmittalCRASM" class="form-label">Date Returned to RO Focal for Transmittal of CRASM</label>
+                                <input type="date" class="form-control" id="dateTransmittalCRASM" name="date_transmittal_crasm">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateGeneratedCRASM" class="form-label">Date CRASM Generated</label>
+                                <input type="date" class="form-control" id="dateGeneratedCRASM" name="date_generated_crasm">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateForwardedBackOIC" class="form-label">Date Forwarded Back to the Office of OIC / CAO</label>
+                                <input type="date" class="form-control" id="dateForwardedBackOIC" name="date_forwarded_back_oic">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReviewedInitialedOIC" class="form-label">Date Reviewed & Initialed by OIC-CRASD</label>
+                                <input type="date" class="form-control" id="dateReviewedInitialedOIC" name="date_reviewed_initialed_oic">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateForwardedBackORD" class="form-label">Date Forwarded Back to ORD</label>
+                                <input type="date" class="form-control" id="dateForwardedBackORD" name="date_forwarded_back_ord">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateApprovedCRASM" class="form-label">Date CRASM Approved by Regional Director</label>
+                                <input type="date" class="form-control" id="dateApprovedCRASM" name="date_approved_crasm">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateTransmittedPO" class="form-label">Date Transmitted back to PO</label>
+                                <input type="date" class="form-control" id="dateTransmittedPO" name="date_transmitted_po">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReceivedPO" class="form-label">Date Received by PO</label>
+                                <input type="date" class="form-control" id="dateReceivedPO" name="date_received_po">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateReleasedSO" class="form-label">Date Released to SO</label>
+                                <input type="date" class="form-control" id="dateReleasedSO" name="date_released_so">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="remarks" class="form-label">REMARKS</label>
+                                <textarea class="form-control" id="remarks" name="remarks"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveUser">Save User</button>
                 </div>
             </div>
         </div>
     </div>
-
 
     <!-- js -->
     <script src="../vendors/scripts/core.js"></script>
