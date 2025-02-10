@@ -12,6 +12,7 @@ if (isset($_SESSION['role_id'])) {
             header("Location: ../super_admin/dashboard.php");
             break;
         case 2:
+            header("Location: ../admin/dashboard.php");
             break;
         case 3:
             header("Location: ../regional-director/dashboard.php");
@@ -23,7 +24,7 @@ if (isset($_SESSION['role_id'])) {
             header("Location: ../collecting-officer/dashboard.php");
             break;
         case 6:
-            header("Location: ../provincial/dashboard.php");
+
             break;
         default:
             break;
@@ -36,15 +37,98 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 $systemInfo = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$sql = "SELECT u.id, u.username, u.email, u.first_name, u.middle_name, u.last_name, u.image, u.status, r.role_name as role_name 
-        FROM users u 
-        LEFT JOIN roles r ON u.role_id = r.id
-        WHERE r.id != 1 AND u.id != :user_id
-        ORDER BY u.created_at DESC";
+$sql = "SELECT 
+    a.`name_of_applicant`, 
+    po.`provincial_office`,
+    CASE 
+        WHEN 
+            a.`date_received_by_po_from_so_applicant` IS NULL OR
+            a.`type_of_application` IS NULL OR
+            a.`date_of_payment` IS NULL OR
+            a.`or_number` IS NULL OR
+            a.`date_transmitted_to_ro` IS NULL OR
+            a.`date_received_by_ro` IS NULL OR
+            a.`ro_screener` IS NULL OR
+            a.`date_forwarded_to_the_office_of_oic` IS NULL OR
+            a.`date_reviewed_by_oic_crasd` IS NULL OR
+            a.`feedbacks` IS NULL OR
+            a.`date_forwarded_to_ord` IS NULL OR
+            a.`date_application_approved_by_rd` IS NULL OR
+            a.`for_issuance_of_crasm` IS NULL OR
+            a.`for_transmittal_of_crasm` IS NULL OR
+            a.`date_crasm_generated` IS NULL OR
+            a.`date_forwarded_back_to_the_office_of_oic_cao` IS NULL OR
+            a.`date_reviewed_and_initialed_by_oic_crasd` IS NULL OR
+            a.`date_forwarded_back_to_ord` IS NULL OR
+            a.`date_crasm_approved_by_rd` IS NULL OR
+            a.`date_transmitted_back_to_po` IS NULL OR
+            a.`date_received_by_po` IS NULL OR
+            a.`date_released_to_so` IS NULL OR
+            a.`remarks` IS NULL
+        THEN 'Pending' 
+        ELSE 'Complete' 
+    END AS `status`,
+    COUNT(*) OVER () AS `total_applications`,
+    SUM(CASE WHEN 
+        a.`date_received_by_po_from_so_applicant` IS NULL OR
+        a.`type_of_application` IS NULL OR
+        a.`date_of_payment` IS NULL OR
+        a.`or_number` IS NULL OR
+        a.`date_transmitted_to_ro` IS NULL OR
+        a.`date_received_by_ro` IS NULL OR
+        a.`ro_screener` IS NULL OR
+        a.`date_forwarded_to_the_office_of_oic` IS NULL OR
+        a.`date_reviewed_by_oic_crasd` IS NULL OR
+        a.`feedbacks` IS NULL OR
+        a.`date_forwarded_to_ord` IS NULL OR
+        a.`date_application_approved_by_rd` IS NULL OR
+        a.`for_issuance_of_crasm` IS NULL OR
+        a.`for_transmittal_of_crasm` IS NULL OR
+        a.`date_crasm_generated` IS NULL OR
+        a.`date_forwarded_back_to_the_office_of_oic_cao` IS NULL OR
+        a.`date_reviewed_and_initialed_by_oic_crasd` IS NULL OR
+        a.`date_forwarded_back_to_ord` IS NULL OR
+        a.`date_crasm_approved_by_rd` IS NULL OR
+        a.`date_transmitted_back_to_po` IS NULL OR
+        a.`date_received_by_po` IS NULL OR
+        a.`date_released_to_so` IS NULL OR
+        a.`remarks` IS NULL 
+    THEN 1 ELSE 0 END) OVER () AS `total_pending`,
+    SUM(CASE WHEN 
+        NOT (
+            a.`date_received_by_po_from_so_applicant` IS NULL OR
+            a.`type_of_application` IS NULL OR
+            a.`date_of_payment` IS NULL OR
+            a.`or_number` IS NULL OR
+            a.`date_transmitted_to_ro` IS NULL OR
+            a.`date_received_by_ro` IS NULL OR
+            a.`ro_screener` IS NULL OR
+            a.`date_forwarded_to_the_office_of_oic` IS NULL OR
+            a.`date_reviewed_by_oic_crasd` IS NULL OR
+            a.`feedbacks` IS NULL OR
+            a.`date_forwarded_to_ord` IS NULL OR
+            a.`date_application_approved_by_rd` IS NULL OR
+            a.`for_issuance_of_crasm` IS NULL OR
+            a.`for_transmittal_of_crasm` IS NULL OR
+            a.`date_crasm_generated` IS NULL OR
+            a.`date_forwarded_back_to_the_office_of_oic_cao` IS NULL OR
+            a.`date_reviewed_and_initialed_by_oic_crasd` IS NULL OR
+            a.`date_forwarded_back_to_ord` IS NULL OR
+            a.`date_crasm_approved_by_rd` IS NULL OR
+            a.`date_transmitted_back_to_po` IS NULL OR
+            a.`date_received_by_po` IS NULL OR
+            a.`date_released_to_so` IS NULL OR
+            a.`remarks` IS NULL
+        ) 
+    THEN 1 ELSE 0 END) OVER () AS `total_completed`
+FROM `applications` a
+LEFT JOIN `provincial_office` po ON a.`provincial_office` = po.`province_id`
+ORDER BY a.`date_created` DESC";
+
 $stmt = $conn->prepare($sql);
-$stmt->bindParam(":user_id", $_SESSION['user_id']);
 $stmt->execute();
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 if (isset($_POST['logout'])) {
     session_unset();
@@ -104,7 +188,6 @@ if (isset($_POST['logout'])) {
 </head>
 
 <body>
-
     <div class="pre-loader">
         <div class="pre-loader-box">
             <div class="loader-logo">
@@ -324,11 +407,6 @@ if (isset($_POST['logout'])) {
                         </a>
                     </li>
                     <li>
-                        <a href="user-control.php" class="dropdown-toggle no-arrow">
-                            <span class="micon bi bi-person-lines-fill"></span><span class="mtext">User Control</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="account_settings.php" class="dropdown-toggle no-arrow">
                             <span class="micon bi bi-gear"></span><span class="mtext">Account Settings</span>
                         </a>
@@ -342,202 +420,121 @@ if (isset($_POST['logout'])) {
 
     <div class="main-container">
         <div class="xs-pd-20-10 pd-ltr-20">
+            <div class="title pb-20">
+                <h2 class="h3 mb-0">Applications Overview</h2>
+            </div>
+
+            <div class="row pb-10">
+
+                <div class="col-xl-4 col-lg-4 col-md-7 mb-20">
+                    <div class="card-box height-100-p widget-style3">
+                        <div class="d-flex flex-wrap">
+                            <div class="widget-data">
+                                <div class="weight-700 font-24 text-dark"> <?php echo !empty($applications) ? $applications[0]['total_applications'] : 0; ?></div>
+                                <div class="font-14 text-secondary weight-500">
+                                    Total Applications
+                                </div>
+                            </div>
+                            <div class="widget-icon">
+                                <div class="icon" data-color="#00eccf">
+                                    <i class="icon-copy dw dw-calendar1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-7 mb-20">
+                    <div class="card-box height-100-p widget-style3">
+                        <div class="d-flex flex-wrap">
+                            <div class="widget-data">
+                                <div class="weight-700 font-24 text-dark"><?php echo !empty($applications) ? $applications[0]['total_completed'] : 0;  ?></div>
+                                <div class="font-14 text-secondary weight-500">
+                                    Completed Applications
+                                </div>
+                            </div>
+                            <div class="widget-icon">
+                                <div class="icon" data-color="#ff5b5b">
+                                    <span class="icon-copy bi bi-person-check"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-7 mb-20">
+                    <div class="card-box height-100-p widget-style3">
+                        <div class="d-flex flex-wrap">
+                            <div class="widget-data">
+                                <div class="weight-700 font-24 text-dark"><?php echo !empty($applications) ? $applications[0]['total_pending'] : 0;  ?></div>
+                                <div class="font-14 text-secondary weight-500">
+                                    Pending Applications
+                                </div>
+                            </div>
+                            <div class="widget-icon">
+                                <div class="icon">
+                                    <i
+                                        class="icon-copy bi bi-x-square"
+                                        aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="card-box pb-10">
-                <div class="h5 pd-20 mb-0 d-flex justify-content-between align-items-center">
-                    <span>User Control</span>
-                    <button class="btn btn-primary" class="btn-block"
-                        data-toggle="modal"
-                        data-target="#userModal"
-                        type="button">
-                        <i class="icon-copy dw dw-add"></i> Add User
-                    </button>
-                </div>
-                <table class="data-table table stripe hover nowrap">
+                <div class="h5 pd-20 mb-0">Recent Patient</div>
+                <table class="data-table table nowrap">
                     <thead>
                         <tr>
-                            <th class="d-none">ID</th>
-                            <th class="table-plus">Firstname</th>
-                            <th>Middlename</th>
-                            <th>Lastname</th>
-                            <th>Email</th>
-                            <th>Username</th>
-                            <th>Role</th>
+                            <th class="table-plus">Name</th>
+                            <th>Provincial Office</th>
                             <th>Status</th>
-                            <th class="datatable-nosort">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($users as $user): ?>
+                        <?php foreach ($applications as $application): ?>
                             <tr>
-                                <td class="d-none"><?php echo htmlspecialchars($user['id'] ?? ''); ?></td>
                                 <td class="table-plus">
                                     <div class="name-avatar d-flex align-items-center">
                                         <div class="avatar mr-2 flex-shrink-0">
                                             <img
-                                                src="<?php echo htmlspecialchars($user['image'] ?? 'vendors/images/default-avatar.jpg'); ?>"
+                                                src="https://cdn-icons-png.flaticon.com/512/10307/10307911.png"
                                                 class="border-radius-100 shadow"
                                                 width="40"
                                                 height="40"
-                                                alt="User avatar" />
+                                                alt="User Avatar" />
                                         </div>
                                         <div class="txt">
-                                            <div class="weight-600"><?php echo htmlspecialchars($user['first_name']); ?></div>
+                                            <div class="weight-600"><?php echo htmlspecialchars($application['name_of_applicant']); ?></div>
                                         </div>
                                     </div>
                                 </td>
-                                <td><?php echo htmlspecialchars($user['middle_name'] ?? ''); ?></td>
-                                <td><?php echo htmlspecialchars($user['last_name']); ?></td>
-                                <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                <td><?php echo htmlspecialchars($user['username']); ?></td>
-                                <td><?php echo htmlspecialchars($user['role_name']); ?></td>
                                 <td>
-                                    <span
-                                        class="badge badge-pill"
-                                        data-bgcolor="<?php echo $user['status'] == strtolower('active') ? '#28a745' : '#dc3545'; ?>"
-                                        data-color="#fff">
-                                        <?php echo $user['status'] == strtolower('Active') ? strtolower('Active') : strtolower('Inactive'); ?>
+                                    <div class="txt">
+                                        <div class="weight-600"><?php echo htmlspecialchars($application['provincial_office']); ?></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-pill"
+                                        data-bgcolor="<?php echo ($application['status'] == 'Complete') ? '#28a745' : '#ffc107'; ?>"
+                                        data-color="#ffffff">
+                                        <?php echo htmlspecialchars($application['status']); ?>
                                     </span>
                                 </td>
-                                <td>
-                                    <?php
-
-                                    if ($user['role_name'] !== "Super Admin"):
-                                    ?>
-                                        <div class='table-actions'>
-                                            <a href='javascript:;' data-color='#265ed7' onclick='editUser(<?php echo (int)$user["id"]; ?>)'>
-                                                <i class='icon-copy dw dw-edit2'></i>
-                                            </a>
-                                            <a href='#' type='button' data-color='#e95959' onclick='deleteUser(<?php echo (int)$user["id"]; ?>)'>
-                                                <i class='icon-copy dw dw-delete-3'></i>
-                                            </a>
-                                        </div>
-                                    <?php endif; ?>
-                                </td>
-
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
+
                 </table>
             </div>
+
+
         </div>
     </div>
 
-    <!-- create modal -->
-    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="userModalLabel">Add New User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="userForm" method="POST" class="add_user">
-                        <div class="mb-3">
-                            <label for="firstname" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="firstname" name="firstname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="middlename" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="middlename" name="middlename">
-                        </div>
-                        <div class="mb-3">
-                            <label for="lastname" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="lastname" name="lastname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Role *</label>
-                            <select class="form-control" id="role" name="role" required>
-                                <option value="">Select a role</option>
-                                <option value="Regional Director">Regional Director</option>
-                                <option value="OIC / CAO">OIC / CAO</option>
-                                <option value="Collecting Officer">Collecting Officer</option>
-                                <option value="Provincial Worker">Provincial Worker</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="saveUser">Save User</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- edit Modal -->
-    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="editUserForm" method="POST">
-                        <input type="hidden" id="edit_user_id" name="user_id">
-                        <div class="mb-3">
-                            <label for="edit_firstname" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="edit_firstname" name="firstname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_middlename" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="edit_middlename" name="middlename">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_lastname" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="edit_lastname" name="lastname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="edit_email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_username" class="form-label">Username *</label>
-                            <input type="text" class="form-control" id="edit_username" name="username" required>
-                        </div>
 
-                        <div class="mb-3">
-                            <label for="edit_role" class="form-label">Role *</label>
-                            <select class="form-control" id="edit_role" name="role" required>
-                                <option value="">Select a role</option>
-                                <option value="Regional Director">Regional Director</option>
-                                <option value="OIC / CAO">OIC / CAO</option>
-                                <option value="Collecting Officer">Collecting Officer</option>
-                                <option value="Provincial Worker">Provincial Worker</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3" id="provincial_office_div" style="display: none;">
-                            <label for="edit_provincial_office" class="form-label">Provincial Office *</label>
-                            <select class="form-control" id="edit_provincial_office" name="provincial_office">
-                                <option value="">Select Provincial Office</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status *</label>
-                            <select class="form-control" id="edit_status" name="status" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="updateUser">Update User</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- js -->
     <script src="../vendors/scripts/core.js"></script>
@@ -550,56 +547,6 @@ if (isset($_POST['logout'])) {
     <script src="../src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
     <script src="../vendors/scripts/dashboard3.js"></script>
     <script src="../vendors/scripts/datatable-setting.js"></script>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const userForm = document.getElementById("userForm");
-            const editUserForm = document.getElementById("editUserForm");
-            const saveUserBtn = document.getElementById("saveUser");
-            const updateUserBtn = document.getElementById("updateUser");
-
-            saveUserBtn.addEventListener("click", function(e) {
-                e.preventDefault();
-                if (validateForm(userForm)) {
-                    handleFormSubmit(userForm);
-                }
-            });
-
-            updateUserBtn.addEventListener("click", function(e) {
-                e.preventDefault();
-                if (validateForm(editUserForm)) {
-                    handleEditFormSubmit(editUserForm);
-                }
-            });
-        });
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const editRoleSelect = document.getElementById("edit_role");
-            if (editRoleSelect) {
-                editRoleSelect.addEventListener("change", function(e) {
-                    const selectedRole = e.target.value;
-                    const regionalOfficeDiv = document.getElementById("regional_office_div");
-                    const provincialOfficeDiv = document.getElementById("provincial_office_div");
-
-                    if (provincialOfficeDiv) {
-                        provincialOfficeDiv.style.display = "none";
-                    }
-                    
-                    switch (selectedRole) {
-                        case "Provincial Worker":
-                        case "Collecting Officer":
-                            if (provincialOfficeDiv) {
-                                provincialOfficeDiv.style.display = "block";
-                                loadProvincialOffices();
-                            }
-                            break;
-                    }
-                });
-            }
-        });
-    </script>
-
 
 </body>
 

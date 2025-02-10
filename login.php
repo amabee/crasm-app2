@@ -33,6 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['username']) && isset($
         $_SESSION['email'] = $user['email'];
         $_SESSION['role_id'] = $user['role_id'];
         $_SESSION['image'] = $user['image'];
+        $_SESSION['provincial_office'] = (int)$user['provincial_office'];
 
         unset($user['password']);
         header("Location: index.php");

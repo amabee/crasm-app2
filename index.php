@@ -19,7 +19,7 @@ if (isset($_SESSION['user_id'])) {
             case 5:
                 header("Location: collecting-officer/dashboard.php");
                 break;
-            case 5:
+            case 6:
                 header("Location: provincial/dashboard.php");
                 break;
             default:
