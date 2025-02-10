@@ -12,9 +12,10 @@ if (isset($_SESSION['role_id'])) {
             header("Location: ../super_admin/dashboard.php");
             break;
         case 2:
+            header("Location: ../admin/dashboard.php");
             break;
         case 3:
-            header("Location: ../regional-director/dashboard.php");
+           
             break;
         case 4:
             header("Location: ../cao/dashboard.php");

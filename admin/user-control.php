@@ -104,7 +104,8 @@ if (isset($_POST['logout'])) {
 </head>
 
 <body>
-    <div class="pre-loader">
+
+    <!-- <div class="pre-loader">
         <div class="pre-loader-box">
             <div class="loader-logo">
                 <img src=<?php echo $systemInfo['app_logo'] ?> alt="" class="dark-logo" />
@@ -115,7 +116,7 @@ if (isset($_POST['logout'])) {
             <div class="percent" id="percent1">0%</div>
             <div class="loading-text">Loading...</div>
         </div>
-    </div>
+    </div> -->
 
     <div class="header">
         <div class="header-left">
@@ -499,6 +500,11 @@ if (isset($_POST['logout'])) {
                             <input type="email" class="form-control" id="edit_email" name="email" required>
                         </div>
                         <div class="mb-3">
+                            <label for="edit_username" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="edit_username" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="edit_role" class="form-label">Role *</label>
                             <select class="form-control" id="edit_role" name="role" required>
                                 <option value="">Select a role</option>
@@ -508,6 +514,14 @@ if (isset($_POST['logout'])) {
                                 <option value="Provincial Worker">Provincial Worker</option>
                             </select>
                         </div>
+
+                        <div class="mb-3" id="provincial_office_div" style="display: none;">
+                            <label for="edit_provincial_office" class="form-label">Provincial Office *</label>
+                            <select class="form-control" id="edit_provincial_office" name="provincial_office">
+                                <option value="">Select Provincial Office</option>
+                            </select>
+                        </div>
+
                         <div class="mb-3">
                             <label for="edit_status" class="form-label">Status *</label>
                             <select class="form-control" id="edit_status" name="status" required>
@@ -558,6 +572,38 @@ if (isset($_POST['logout'])) {
                     handleEditFormSubmit(editUserForm);
                 }
             });
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const editRoleSelect = document.getElementById("edit_role");
+            if (editRoleSelect) {
+                editRoleSelect.addEventListener("change", function(e) {
+                    const selectedRole = e.target.value;
+                    const regionalOfficeDiv = document.getElementById("regional_office_div");
+                    const provincialOfficeDiv = document.getElementById("provincial_office_div");
+
+                    if (regionalOfficeDiv) {
+                        regionalOfficeDiv.style.display = "none";
+                    }
+                    if (provincialOfficeDiv) {
+                        provincialOfficeDiv.style.display = "none";
+                    }
+
+                    switch (selectedRole) {
+                        case "Regional Director":
+                            if (regionalOfficeDiv) {
+                                regionalOfficeDiv.style.display = "block";
+                            }
+                            break;
+                        case "Provincial Worker":
+                            if (provincialOfficeDiv) {
+                                provincialOfficeDiv.style.display = "block";
+                                loadProvincialOffices();
+                            }
+                            break;
+                    }
+                });
+            }
         });
     </script>
 
