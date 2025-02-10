@@ -407,11 +407,6 @@ if (isset($_POST['logout'])) {
                         </a>
                     </li>
                     <li>
-                        <a href="user-control.php" class="dropdown-toggle no-arrow">
-                            <span class="micon bi bi-person-lines-fill"></span><span class="mtext">User Control</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="account_settings.php" class="dropdown-toggle no-arrow">
                             <span class="micon bi bi-gear"></span><span class="mtext">Account Settings</span>
                         </a>

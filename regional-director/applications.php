@@ -12,9 +12,10 @@ if (isset($_SESSION['role_id'])) {
             header("Location: ../super_admin/dashboard.php");
             break;
         case 2:
+            header("Location: ../admin/dashboard.php");
             break;
         case 3:
-            header("Location: ../regional-director/dashboard.php");
+            
             break;
         case 4:
             header("Location: ../cao/dashboard.php");
@@ -358,11 +359,6 @@ if (isset($_POST['logout'])) {
                     <li>
                         <a href="applications.php" class="dropdown-toggle no-arrow">
                             <span class="micon bi bi-person-lines-fill"></span><span class="mtext">Applications</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="user-control.php" class="dropdown-toggle no-arrow">
-                            <span class="micon bi bi-person-lines-fill"></span><span class="mtext">User Control</span>
                         </a>
                     </li>
                     <li>

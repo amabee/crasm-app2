@@ -125,7 +125,6 @@ async function loadProvincialOffices() {
       }
     }
   } catch (error) {
-    console.error("Error loading provincial offices:", error);
     Swal.fire({
       icon: "error",
       title: "Error",
@@ -195,7 +194,6 @@ async function loadApplicationData(applicationId) {
       throw new Error(data.message || "Failed to load application data");
     }
   } catch (error) {
-    console.error("Error:", error);
     Swal.fire({
       icon: "error",
       title: "Error",
@@ -206,7 +204,6 @@ async function loadApplicationData(applicationId) {
 
 async function editUser(userId) {
   try {
-    // Show loading with SweetAlert2
     Swal.fire({
       title: "Loading...",
       allowOutsideClick: false,
@@ -236,12 +233,13 @@ async function editUser(userId) {
         throw new Error("User data is missing from response");
       }
 
+      await loadProvincialOffices();
+
       const modal = $("#editUserModal");
       modal.modal("show");
 
       const roleId = data.data.user.role_id;
 
-      // Fill in form data
       document.getElementById("edit_user_id").value = data.data.user.id;
       document.getElementById("edit_firstname").value =
         data.data.user.first_name;
@@ -258,14 +256,11 @@ async function editUser(userId) {
         "provincial_office_div"
       );
 
-      // Handle role-specific UI
       switch (roleId) {
         case "6":
           document.getElementById("edit_role").value = "Provincial Worker";
           if (provincialOfficeDiv) provincialOfficeDiv.style.display = "block";
           if (regionalOfficeDiv) regionalOfficeDiv.style.display = "none";
-
-          await loadProvincialOffices();
 
           const provincialOfficeSelect = document.getElementById(
             "edit_provincial_office"
@@ -296,10 +291,8 @@ async function editUser(userId) {
       title: "Error!",
       text: error.message || "An unexpected error occurred",
     });
-    console.error("Error:", error);
   }
 }
-
 
 async function handleEditFormSubmit(form) {
   Swal.fire({
@@ -397,7 +390,6 @@ async function saveApplicationData(form) {
     }
   } catch (error) {
     Swal.close();
-    console.error("Error:", error);
     Swal.fire({
       icon: "error",
       title: "Error",

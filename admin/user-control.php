@@ -105,7 +105,7 @@ if (isset($_POST['logout'])) {
 
 <body>
 
-    <!-- <div class="pre-loader">
+    <div class="pre-loader">
         <div class="pre-loader-box">
             <div class="loader-logo">
                 <img src=<?php echo $systemInfo['app_logo'] ?> alt="" class="dark-logo" />
@@ -116,7 +116,7 @@ if (isset($_POST['logout'])) {
             <div class="percent" id="percent1">0%</div>
             <div class="loading-text">Loading...</div>
         </div>
-    </div> -->
+    </div>
 
     <div class="header">
         <div class="header-left">
