@@ -141,10 +141,10 @@ if (isset($_POST['logout'])) {
 </head>
 
 <body>
-    <!-- <div class="pre-loader">
+    <div class="pre-loader">
         <div class="pre-loader-box">
             <div class="loader-logo">
-                <img src="../vendors/images/deskapp-logo.svg" alt="" />
+                <img src=<?php echo $systemInfo['app_logo'] ?> alt="" class="dark-logo" />
             </div>
             <div class="loader-progress" id="progress_div">
                 <div class="bar" id="bar1"></div>
@@ -152,7 +152,7 @@ if (isset($_POST['logout'])) {
             <div class="percent" id="percent1">0%</div>
             <div class="loading-text">Loading...</div>
         </div>
-    </div> -->
+    </div>
 
     <div class="header">
         <div class="header-left">
@@ -522,7 +522,7 @@ if (isset($_POST['logout'])) {
                             </div>
                         </div>
 
-                        <!-- OIC Review --> 
+                        <!-- OIC Review -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="editDateReviewedOIC" class="form-label">Date Reviewed by OIC CRASD</label>

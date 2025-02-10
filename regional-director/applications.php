@@ -36,15 +36,46 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 $systemInfo = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$sql = "SELECT u.id, u.username, u.email, u.first_name, u.middle_name, u.last_name, u.image, u.status, r.role_name as role_name 
-        FROM users u 
-        LEFT JOIN roles r ON u.role_id = r.id
-        WHERE r.id != 1 AND u.id != :user_id
-        ORDER BY u.created_at DESC";
+$sql = "SELECT
+    a.application_id,
+    a.name_of_applicant, 
+    po.provincial_office,
+    CASE 
+        WHEN    
+            a.date_received_by_po_from_so_applicant IS NULL OR
+            a.type_of_application IS NULL OR
+            a.date_of_payment IS NULL OR
+            a.or_number IS NULL OR
+            a.date_transmitted_to_ro IS NULL OR
+            a.date_received_by_ro IS NULL OR
+            a.ro_screener IS NULL OR
+            a.date_forwarded_to_the_office_of_oic IS NULL OR
+            a.date_reviewed_by_oic_crasd IS NULL OR
+            a.feedbacks IS NULL OR
+            a.date_forwarded_to_ord IS NULL OR
+            a.date_application_approved_by_rd IS NULL OR
+            a.for_issuance_of_crasm IS NULL OR
+            a.for_transmittal_of_crasm IS NULL OR
+            a.date_crasm_generated IS NULL OR
+            a.date_forwarded_back_to_the_office_of_oic_cao IS NULL OR
+            a.date_reviewed_and_initialed_by_oic_crasd IS NULL OR
+            a.date_forwarded_back_to_ord IS NULL OR
+            a.date_crasm_approved_by_rd IS NULL OR
+            a.date_transmitted_back_to_po IS NULL OR
+            a.date_received_by_po IS NULL OR
+            a.date_released_to_so IS NULL OR
+            a.remarks IS NULL
+        THEN 'Pending' 
+        ELSE 'Complete' 
+    END AS status
+FROM applications a
+LEFT JOIN provincial_office po ON a.provincial_office = po.province_id
+ORDER BY a.date_created DESC;
+
+";
 $stmt = $conn->prepare($sql);
-$stmt->bindParam(":user_id", $_SESSION['user_id']);
 $stmt->execute();
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (isset($_POST['logout'])) {
     session_unset();
@@ -64,14 +95,20 @@ if (isset($_POST['logout'])) {
     <title><?php echo $systemInfo['app_name'] ?></title>
 
     <!-- Site favicon -->
-
+    <link
+        rel="apple-touch-icon"
+        sizes="180x180"
+        href="../vendors/images/apple-touch-icon.png" />
     <link
         rel="icon"
         type="image/png"
         sizes="32x32"
-        href=<?php echo "../uploads/" . $systemInfo['favicon'] ?> />
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        href="../vendors/images/favicon-32x32.png" />
+    <link
+        rel="icon"
+        type="image/png"
+        sizes="16x16"
+        href="../vendors/images/favicon-16x16.png" />
 
     <!-- Mobile Specific Metas -->
     <meta
@@ -98,8 +135,8 @@ if (isset($_POST['logout'])) {
         href="../src/plugins/datatables/css/responsive.bootstrap4.min.css" />
     <link rel="stylesheet" type="text/css" href="../vendors/styles/style.css" />
 
-
     <script src="process.js" defer></script>
+
 
 </head>
 
@@ -296,6 +333,7 @@ if (isset($_POST['logout'])) {
         </div>
     </div>
 
+
     <div class="left-side-bar">
         <div class="brand-logo">
             <a href="index.html">
@@ -337,193 +375,256 @@ if (isset($_POST['logout'])) {
         </div>
     </div>
 
+
     <div class="mobile-menu-overlay"></div>
 
     <div class="main-container">
         <div class="xs-pd-20-10 pd-ltr-20">
-
             <div class="card-box pb-10">
                 <div class="h5 pd-20 mb-0 d-flex justify-content-between align-items-center">
-                    <span>User Control</span>
-                    <button class="btn btn-primary" class="btn-block"
-                        data-toggle="modal"
-                        data-target="#userModal"
-                        type="button">
-                        <i class="icon-copy dw dw-add"></i> Add User
-                    </button>
+                    <span>Applications</span>
                 </div>
-                <table class="data-table table stripe hover nowrap">
+
+                <table class="data-table table nowrap">
                     <thead>
                         <tr>
-                            <th class="d-none">ID</th>
-                            <th class="table-plus">Firstname</th>
-                            <th>Middlename</th>
-                            <th>Lastname</th>
-                            <th>Email</th>
-                            <th>Username</th>
-                            <th>Role</th>
+                            <th class="d-none">Application ID</th>
+                            <th class="table-plus">Applicant Name</th>
+                            <th>Provincial Office</th>
                             <th>Status</th>
                             <th class="datatable-nosort">Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        <?php foreach ($users as $user): ?>
+                        <?php foreach ($applications as $application): ?>
                             <tr>
-                                <td class="d-none"><?php echo htmlspecialchars($user['id'] ?? ''); ?></td>
+                                <td class="table-plus d-none">
+                                    <div class="txt">
+                                        <div class="weight-600" id="application_id" name="application_id"><?php echo htmlspecialchars($application['application_id']); ?></div>
+                                    </div>
+                                </td>
                                 <td class="table-plus">
                                     <div class="name-avatar d-flex align-items-center">
-                                        <div class="avatar mr-2 flex-shrink-0">
-                                            <img
-                                                src="<?php echo htmlspecialchars($user['image'] ?? 'vendors/images/default-avatar.jpg'); ?>"
-                                                class="border-radius-100 shadow"
-                                                width="40"
-                                                height="40"
-                                                alt="User avatar" />
-                                        </div>
                                         <div class="txt">
-                                            <div class="weight-600"><?php echo htmlspecialchars($user['first_name']); ?></div>
+                                            <div class="weight-600"><?php echo htmlspecialchars($application['name_of_applicant']); ?></div>
                                         </div>
                                     </div>
                                 </td>
-                                <td><?php echo htmlspecialchars($user['middle_name'] ?? ''); ?></td>
-                                <td><?php echo htmlspecialchars($user['last_name']); ?></td>
-                                <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                <td><?php echo htmlspecialchars($user['username']); ?></td>
-                                <td><?php echo htmlspecialchars($user['role_name']); ?></td>
                                 <td>
-                                    <span
-                                        class="badge badge-pill"
-                                        data-bgcolor="<?php echo $user['status'] == strtolower('active') ? '#28a745' : '#dc3545'; ?>"
-                                        data-color="#fff">
-                                        <?php echo $user['status'] == strtolower('Active') ? strtolower('Active') : strtolower('Inactive'); ?>
+                                    <div class="txt">
+                                        <div class="weight-600"><?php echo htmlspecialchars($application['provincial_office']); ?></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-pill"
+                                        data-bgcolor="<?php echo ($application['status'] == 'Complete') ? '#28a745' : '#ffc107'; ?>"
+                                        data-color="#ffffff">
+                                        <?php echo htmlspecialchars($application['status']); ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <?php
-
-                                    if ($user['role_name'] !== "Super Admin"):
-                                    ?>
-                                        <div class='table-actions'>
-                                            <a href='javascript:;' data-color='#265ed7' onclick='editUser(<?php echo (int)$user["id"]; ?>)'>
-                                                <i class='icon-copy dw dw-edit2'></i>
-                                            </a>
-                                            <a href='#' type='button' data-color='#e95959' onclick='deleteUser(<?php echo (int)$user["id"]; ?>)'>
-                                                <i class='icon-copy dw dw-delete-3'></i>
-                                            </a>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div class="table-actions">
+                                        <a href="#"
+                                            data-color="#265ed7"
+                                            style="margin-right: 10px;"
+                                            class="edit-application"
+                                            data-id='<?php echo htmlspecialchars($application['application_id']); ?>'>
+                                            <i class="icon-copy dw dw-edit2"></i>
+                                        </a>
+                                        <!-- <a href="#" data-color="#e95959" onclick="deleteUser(this)">
+                                            <i class="icon-copy dw dw-delete-3"></i>
+                                        </a> -->
+                                    </div>
                                 </td>
-
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
 
-    <!-- create modal -->
-    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="userModalLabel">Add New User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="userForm" method="POST" class="add_user">
-                        <div class="mb-3">
-                            <label for="firstname" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="firstname" name="firstname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="middlename" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="middlename" name="middlename">
-                        </div>
-                        <div class="mb-3">
-                            <label for="lastname" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="lastname" name="lastname" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Role *</label>
-                            <select class="form-control" id="role" name="role" required>
-                                <option value="">Select a role</option>
-                                <option value="Regional Director">Regional Director</option>
-                                <option value="OIC / CAO">OIC / CAO</option>
-                                <option value="Collecting Officer">Collecting Officer</option>
-                                <option value="Provincial Worker">Provincial Worker</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="saveUser">Save User</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- edit Modal -->
+
+    <!-- EDIT MODAL -->
     <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editUserForm" method="POST">
-                        <input type="hidden" id="edit_user_id" name="user_id">
-                        <div class="mb-3">
-                            <label for="edit_firstname" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="edit_firstname" name="firstname" required>
+                    <form id="editUserForm">
+                        <input type="hidden" name="action" value="update_application">
+                        <input type="hidden" name="application_id" id="editApplicationId">
+
+                        <!-- Basic Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name_of_applicant" class="form-label">Applicant Name</label>
+                                <input type="text" class="form-control" id="name_of_applicant" name="name_of_applicant" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="provincial_office" class="form-label">Provincial Office</label>
+                                <select class="form-control" id="provincial_office" name="provincial_office" required>
+                                    <option value="">Select Provincial Office</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_middlename" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="edit_middlename" name="middlename">
+
+                        <!-- Initial Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReceivedPO" class="form-label">Date Received by PO from SO Applicant</label>
+                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po_from_so_applicant">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editTypeOfApplication" class="form-label">Type of Application</label>
+                                <input type="text" class="form-control" id="editTypeOfApplication" name="type_of_application">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_lastname" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="edit_lastname" name="lastname" required>
+
+                        <!-- Payment Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateOfPayment" class="form-label">Date of Payment</label>
+                                <input type="date" class="form-control" id="editDateOfPayment" name="date_of_payment">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editORNumber" class="form-label">O.R. Number</label>
+                                <input type="text" class="form-control" id="editORNumber" name="or_number" readonly>
+                                <input type="hidden" name="or_number_hidden" id="editORNumberHidden">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="edit_email" name="email" required>
+
+                        <!-- RO Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateTransmittedRO" class="form-label">Date Transmitted to RO</label>
+                                <input type="date" class="form-control" id="editDateTransmittedRO" name="date_transmitted_to_ro">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateReceivedRO" class="form-label">Date Received by RO</label>
+                                <input type="date" class="form-control" id="editDateReceivedRO" name="date_received_by_ro">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_role" class="form-label">Role *</label>
-                            <select class="form-control" id="edit_role" name="role" required>
-                                <option value="">Select a role</option>
-                                <option value="Regional Director">Regional Director</option>
-                                <option value="OIC / CAO">OIC / CAO</option>
-                                <option value="Collecting Officer">Collecting Officer</option>
-                                <option value="Provincial Worker">Provincial Worker</option>
-                            </select>
+
+                        <!-- Review Process -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedRO" class="form-label">Date Reviewed by RO Screener/SOIS Focal</label>
+                                <input type="date" class="form-control" id="editDateReviewedRO" name="ro_screener">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedOIC" class="form-label">Date Forwarded to OIC/CAO</label>
+                                <input type="date" class="form-control" id="editDateForwardedOIC" name="date_forwarded_to_the_office_of_oic">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status *</label>
-                            <select class="form-control" id="edit_status" name="status" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
+
+                        <!-- OIC Review -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedOIC" class="form-label">Date Reviewed by OIC CRASD</label>
+                                <input type="date" class="form-control" id="editDateReviewedOIC" name="date_reviewed_by_oic_crasd">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editFeedbacks" class="form-label">Feedbacks</label>
+                                <textarea class="form-control" id="editFeedbacks" name="feedbacks"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- ORD Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateForwardedORD" class="form-label">Date Forwarded to ORD</label>
+                                <input type="date" class="form-control" id="editDateForwardedORD" name="date_forwarded_to_ord">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateApprovedRD" class="form-label">Date Approved by Regional Director</label>
+                                <input type="date" class="form-control" id="editDateApprovedRD" name="date_application_approved_by_rd">
+                            </div>
+                        </div>
+
+                        <!-- CRASM Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateCrasmIssuance" class="form-label">Date Returned for CRASM Issuance</label>
+                                <input type="date" class="form-control" id="editDateCrasmIssuance" name="for_issuance_of_crasm">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateTransmittalCRASM" class="form-label">Date for CRASM Transmittal</label>
+                                <input type="date" class="form-control" id="editDateTransmittalCRASM" name="for_transmittal_of_crasm">
+                            </div>
+                        </div>
+
+                        <!-- Final Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateGeneratedCRASM" class="form-label">Date CRASM Generated</label>
+                                <input type="date" class="form-control" id="editDateGeneratedCRASM" name="date_crasm_generated">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedBackOIC" class="form-label">Date Forwarded Back to OIC/CAO</label>
+                                <input type="date" class="form-control" id="editDateForwardedBackOIC" name="date_forwarded_back_to_the_office_of_oic_cao">
+                            </div>
+                        </div>
+
+                        <!-- Final Review -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedInitialedOIC" class="form-label">Date Reviewed & Initialed by OIC-CRASD</label>
+                                <input type="date" class="form-control" id="editDateReviewedInitialedOIC" name="date_reviewed_and_initialed_by_oic_crasd">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedBackORD" class="form-label">Date Forwarded Back to ORD</label>
+                                <input type="date" class="form-control" id="editDateForwardedBackORD" name="date_forwarded_back_to_ord">
+                            </div>
+                        </div>
+
+                        <!-- Final Approval -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateApprovedCRASM" class="form-label">Date CRASM Approved by RD</label>
+                                <input type="date" class="form-control" id="editDateApprovedCRASM" name="date_crasm_approved_by_rd">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateTransmittedPO" class="form-label">Date Transmitted back to PO</label>
+                                <input type="date" class="form-control" id="editDateTransmittedPO" name="date_transmitted_back_to_po">
+                            </div>
+                        </div>
+
+                        <!-- Final Status -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReceivedPO" class="form-label">Date Received by PO</label>
+                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateReleasedSO" class="form-label">Date Released to SO</label>
+                                <input type="date" class="form-control" id="editDateReleasedSO" name="date_released_to_so">
+                            </div>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="editRemarks" class="form-label">Remarks</label>
+                                <textarea class="form-control" id="editRemarks" name="remarks" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" id="updateUser">Update User</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- modal -->
 
     <!-- js -->
     <script src="../vendors/scripts/core.js"></script>
@@ -537,30 +638,30 @@ if (isset($_POST['logout'])) {
     <script src="../vendors/scripts/dashboard3.js"></script>
     <script src="../vendors/scripts/datatable-setting.js"></script>
 
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const userForm = document.getElementById("userForm");
-            const editUserForm = document.getElementById("editUserForm");
-            const saveUserBtn = document.getElementById("saveUser");
-            const updateUserBtn = document.getElementById("updateUser");
-
-            saveUserBtn.addEventListener("click", function(e) {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('editUserForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                if (validateForm(userForm)) {
-                    handleFormSubmit(userForm);
+
+                const orNumber = document.getElementById('editORNumber').value;
+                document.getElementById('editORNumberHidden').value = orNumber;
+
+                if (validateForm(this)) {
+                    saveApplicationData(this);
                 }
             });
 
-            updateUserBtn.addEventListener("click", function(e) {
-                e.preventDefault();
-                if (validateForm(editUserForm)) {
-                    handleEditFormSubmit(editUserForm);
-                }
+            document.querySelectorAll('.edit-application').forEach(button => {
+                button.addEventListener('click', function() {
+                    const applicationId = this.dataset.id;
+                    loadApplicationData(applicationId);
+                });
             });
+
+            loadProvincialOffices();
         });
     </script>
-
 
 </body>
 
