@@ -12,7 +12,7 @@ if (isset($_SESSION['role_id'])) {
             header("Location: ../super_admin/dashboard.php");
             break;
         case 2:
-            header("Location: ../regional-director/dashboard.php");
+            header("Location: ../admin/dashboard.php");
             break;
         case 3:
             
@@ -31,11 +31,17 @@ if (isset($_SESSION['role_id'])) {
     }
 }
 
+// Debug: Check session variables
+// echo '<pre>'; print_r($_SESSION); echo '</pre>';
+
 $systemInfo = [];
 $sql = "SELECT `app_name`, `title`, `front_title`, `favicon`, `app_logo` FROM `system_settings`";
 $stmt = $conn->prepare($sql);
 $stmt->execute();
 $systemInfo = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+// Debug: Check if provincial_office session variable is set
+// echo 'Provincial Office: ' . $_SESSION['provincial_office'];
 
 $sql = "SELECT
     a.application_id,
@@ -71,11 +77,15 @@ $sql = "SELECT
     END AS status
 FROM applications a
 LEFT JOIN provincial_office po ON a.provincial_office = po.province_id
-ORDER BY a.date_created DESC;
-";
+WHERE a.provincial_office = :provincial_office
+ORDER BY a.date_created DESC";
 $stmt = $conn->prepare($sql);
+$stmt->bindParam(":provincial_office", $_SESSION['provincial_office']);
 $stmt->execute();
 $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Debug: Check if applications are fetched
+// echo '<pre>'; print_r($applications); echo '</pre>';
 
 if (isset($_POST['logout'])) {
     session_unset();
@@ -83,38 +93,127 @@ if (isset($_POST['logout'])) {
     header("Location: ../index.php");
     exit();
 }
+
+
 ?>
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <!-- Basic Page Info -->
     <meta charset="utf-8" />
     <title><?php echo $systemInfo['app_name'] ?></title>
 
     <!-- Site favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="../vendors/images/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="../vendors/images/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="../vendors/images/favicon-16x16.png" />
+    <link
+        rel="apple-touch-icon"
+        sizes="180x180"
+        href="../vendors/images/apple-touch-icon.png" />
+    <link
+        rel="icon"
+        type="image/png"
+        sizes="32x32"
+        href="../vendors/images/favicon-32x32.png" />
+    <link
+        rel="icon"
+        type="image/png"
+        sizes="16x16"
+        href="../vendors/images/favicon-16x16.png" />
 
     <!-- Mobile Specific Metas -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1" />
 
     <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="../vendors/styles/core.css" />
-    <link rel="stylesheet" type="text/css" href="../vendors/styles/icon-font.min.css" />
-    <link rel="stylesheet" type="text/css" href="../src/plugins/datatables/css/dataTables.bootstrap4.min.css" />
-    <link rel="stylesheet" type="text/css" href="../src/plugins/datatables/css/responsive.bootstrap4.min.css" />
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="../vendors/styles/icon-font.min.css" />
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="../src/plugins/datatables/css/dataTables.bootstrap4.min.css" />
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="../src/plugins/datatables/css/responsive.bootstrap4.min.css" />
     <link rel="stylesheet" type="text/css" href="../vendors/styles/style.css" />
 
     <script src="process.js" defer></script>
+
+    <style>
+        .card-box {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 28px rgba(0, 0, 0, .08);
+            margin-bottom: 1rem;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .form-control {
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            padding: 8px 12px;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .btn {
+            border-radius: 6px;
+            padding: 8px 16px;
+        }
+
+        .font-weight-bold {
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .card-box .card-body {
+            padding: 1.25rem;
+        }
+
+        .text-danger {
+            color: #dc3545;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .modal-lg {
+            max-width: 800px;
+        }
+    </style>
+
+
 </head>
 
 <body>
-    <div class="pre-loader">
+    <!-- <div class="pre-loader">
         <div class="pre-loader-box">
             <div class="loader-logo">
                 <img src=<?php echo $systemInfo['app_logo'] ?> alt="" class="dark-logo" />
@@ -125,28 +224,37 @@ if (isset($_POST['logout'])) {
             <div class="percent" id="percent1">0%</div>
             <div class="loading-text">Loading...</div>
         </div>
-    </div>
+    </div> -->
 
     <div class="header">
         <div class="header-left">
             <div class="menu-icon bi bi-list"></div>
-            <div class="search-toggle-icon bi bi-search" data-toggle="header_search"></div>
+            <div
+                class="search-toggle-icon bi bi-search"
+                data-toggle="header_search"></div>
         </div>
         <div class="header-right">
             <div class="dashboard-setting user-notification">
                 <div class="dropdown">
-                    <a class="dropdown-toggle no-arrow" href="javascript:;" data-toggle="right-sidebar">
+                    <a
+                        class="dropdown-toggle no-arrow"
+                        href="javascript:;"
+                        data-toggle="right-sidebar">
                         <i class="dw dw-settings2"></i>
                     </a>
                 </div>
             </div>
             <div class="user-info-dropdown">
                 <div class="dropdown">
-                    <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                    <a
+                        class="dropdown-toggle"
+                        href="#"
+                        role="button"
+                        data-toggle="dropdown">
                         <span class="user-icon">
                             <img src=<?php echo $_SESSION['image'] ?? "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg"; ?> alt="Profile Image" />
                         </span>
-                        <span class="user-name"><?php echo ($_SESSION['firstname'] . " " . (isset($_SESSION['middlename']) ? $_SESSION['middlename'] : "") . " " . $_SESSION['lastname']); ?></span>
+                        <span class="user-name"><?php echo ($_SESSION['firstname'] . " " . (isset($_SESSION['middlename']) ? $_SESSION['middlename'] : "") . " " . $_SESSION['lastname']); ?></h3></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right dropdown-menu-icon-list">
                         <form method="POST" action="../logout.php">
@@ -155,20 +263,157 @@ if (isset($_POST['logout'])) {
                             </button>
                         </form>
                     </div>
+
                 </div>
+            </div>
+            <div class="github-link">
+                <a href="https://github.com/dropways/deskapp" target="_blank"><img src="vendors/images/github.svg" alt="" /></a>
             </div>
         </div>
     </div>
 
     <div class="right-sidebar">
-        <!-- Your existing right sidebar code -->
+        <div class="sidebar-title">
+            <h3 class="weight-600 font-16 text-blue">
+                Layout Settings
+                <span class="btn-block font-weight-400 font-12">User Interface Settings</span>
+            </h3>
+            <div class="close-sidebar" data-toggle="right-sidebar-close">
+                <i class="icon-copy ion-close-round"></i>
+            </div>
+        </div>
+        <div class="right-sidebar-body customscroll">
+            <div class="right-sidebar-body-content">
+                <h4 class="weight-600 font-18 pb-10">Header Background</h4>
+                <div class="sidebar-btn-group pb-30 mb-10">
+                    <a
+                        href="javascript:void(0);"
+                        class="btn btn-outline-primary header-white active">White</a>
+                    <a
+                        href="javascript:void(0);"
+                        class="btn btn-outline-primary header-dark">Dark</a>
+                </div>
+
+                <h4 class="weight-600 font-18 pb-10">Sidebar Background</h4>
+                <div class="sidebar-btn-group pb-30 mb-10">
+                    <a
+                        href="javascript:void(0);"
+                        class="btn btn-outline-primary sidebar-light">White</a>
+                    <a
+                        href="javascript:void(0);"
+                        class="btn btn-outline-primary sidebar-dark active">Dark</a>
+                </div>
+
+                <h4 class="weight-600 font-18 pb-10">Menu Dropdown Icon</h4>
+                <div class="sidebar-radio-group pb-10 mb-10">
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebaricon-1"
+                            name="menu-dropdown-icon"
+                            class="custom-control-input"
+                            value="icon-style-1"
+                            checked="" />
+                        <label class="custom-control-label" for="sidebaricon-1"><i class="fa fa-angle-down"></i></label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebaricon-2"
+                            name="menu-dropdown-icon"
+                            class="custom-control-input"
+                            value="icon-style-2" />
+                        <label class="custom-control-label" for="sidebaricon-2"><i class="ion-plus-round"></i></label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebaricon-3"
+                            name="menu-dropdown-icon"
+                            class="custom-control-input"
+                            value="icon-style-3" />
+                        <label class="custom-control-label" for="sidebaricon-3"><i class="fa fa-angle-double-right"></i></label>
+                    </div>
+                </div>
+
+                <h4 class="weight-600 font-18 pb-10">Menu List Icon</h4>
+                <div class="sidebar-radio-group pb-30 mb-10">
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebariconlist-1"
+                            name="menu-list-icon"
+                            class="custom-control-input"
+                            value="icon-list-style-1"
+                            checked="" />
+                        <label class="custom-control-label" for="sidebariconlist-1"><i class="ion-minus-round"></i></label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebariconlist-2"
+                            name="menu-list-icon"
+                            class="custom-control-input"
+                            value="icon-list-style-2" />
+                        <label class="custom-control-label" for="sidebariconlist-2"><i class="fa fa-circle-o" aria-hidden="true"></i></label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebariconlist-3"
+                            name="menu-list-icon"
+                            class="custom-control-input"
+                            value="icon-list-style-3" />
+                        <label class="custom-control-label" for="sidebariconlist-3"><i class="dw dw-check"></i></label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebariconlist-4"
+                            name="menu-list-icon"
+                            class="custom-control-input"
+                            value="icon-list-style-4"
+                            checked="" />
+                        <label class="custom-control-label" for="sidebariconlist-4"><i class="icon-copy dw dw-next-2"></i></label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebariconlist-5"
+                            name="menu-list-icon"
+                            class="custom-control-input"
+                            value="icon-list-style-5" />
+                        <label class="custom-control-label" for="sidebariconlist-5"><i class="dw dw-fast-forward-1"></i></label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input
+                            type="radio"
+                            id="sidebariconlist-6"
+                            name="menu-list-icon"
+                            class="custom-control-input"
+                            value="icon-list-style-6" />
+                        <label class="custom-control-label" for="sidebariconlist-6"><i class="dw dw-next"></i></label>
+                    </div>
+                </div>
+
+                <div class="reset-options pt-30 text-center">
+                    <button class="btn btn-danger" id="reset-settings">
+                        Reset Settings
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+
 
     <div class="left-side-bar">
         <div class="brand-logo">
             <a href="index.html">
                 <img src=<?php echo $systemInfo['app_logo'] ?> alt="" class="dark-logo" />
-                <img src="../vendors/images/deskapp-logo-white.svg" alt="" class="light-logo" />
+                <img
+                    src="../vendors/images/deskapp-logo-white.svg"
+                    alt=""
+                    class="light-logo" />
             </a>
             <div class="close-sidebar" data-toggle="left-sidebar-close">
                 <i class="ion-close-round"></i>
@@ -187,6 +432,7 @@ if (isset($_POST['logout'])) {
                             <span class="micon bi bi-person-lines-fill"></span><span class="mtext">Applications</span>
                         </a>
                     </li>
+
                     <li>
                         <a href="account_settings.php" class="dropdown-toggle no-arrow">
                             <span class="micon bi bi-gear"></span><span class="mtext">Account Settings</span>
@@ -204,9 +450,7 @@ if (isset($_POST['logout'])) {
             <div class="card-box pb-10">
                 <div class="h5 pd-20 mb-0 d-flex justify-content-between align-items-center">
                     <span>Applications</span>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addApplicationModal">
-                        <i class="bi bi-plus"></i> Add Application
-                    </button>
+                    <!-- Removed Add Application Button -->
                 </div>
 
                 <table class="data-table table nowrap">
@@ -219,6 +463,7 @@ if (isset($_POST['logout'])) {
                             <th class="datatable-nosort">Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         <?php foreach ($applications as $application): ?>
                             <tr>
@@ -255,85 +500,22 @@ if (isset($_POST['logout'])) {
                                             data-id='<?php echo htmlspecialchars($application['application_id']); ?>'>
                                             <i class="icon-copy dw dw-edit2"></i>
                                         </a>
+                                        <!-- <a href="#" data-color="#e95959" onclick="deleteUser(this)">
+                                            <i class="icon-copy dw dw-delete-3"></i>
+                                        </a> -->
                                     </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
 
-    <!-- Add Application Modal -->
-    <div class="modal fade" id="addApplicationModal" tabindex="-1" aria-labelledby="addApplicationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addApplicationModalLabel">Add New Application</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addApplicationForm">
-                        <input type="hidden" name="action" value="add_application">
-                        
-                        <!-- Basic Information -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="add_name_of_applicant" class="form-label">Applicant Name</label>
-                                <input type="text" class="form-control" id="add_name_of_applicant" name="name_of_applicant" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="add_provincial_office" class="form-label">Provincial Office</label>
-                                <select class="form-control" id="add_provincial_office" name="provincial_office" required>
-                                    <option value="">Select Provincial Office</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <!-- Initial Processing -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="add_date_received_po" class="form-label">Date Received by PO from SO Applicant</label>
-                                <input type="date" class="form-control" id="add_date_received_po" name="date_received_by_po_from_so_applicant">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="add_type_of_application" class="form-label">Type of Application</label>
-                                <input type="text" class="form-control" id="add_type_of_application" name="type_of_application">
-                            </div>
-                        </div>
-
-                        <!-- Payment Information -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="add_date_of_payment" class="form-label">Date of Payment</label>
-                                <input type="date" class="form-control" id="add_date_of_payment" name="date_of_payment">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="add_or_number" class="form-label">O.R. Number</label>
-                                <input type="text" class="form-control" id="add_or_number" name="or_number">
-                            </div>
-                        </div>
-
-                        <!-- Remarks -->
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <label for="add_remarks" class="form-label">Remarks</label>
-                                <textarea class="form-control" id="add_remarks" name="remarks" rows="3"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Add Application</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Application Modal -->
+    <!-- EDIT MODAL -->
     <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -346,34 +528,193 @@ if (isset($_POST['logout'])) {
                         <input type="hidden" name="action" value="update_application">
                         <input type="hidden" name="application_id" id="editApplicationId">
 
-                        <!-- Basic Information -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="name_of_applicant" class="form-label">Applicant Name</label>
-                                <input type="text" class="form-control" id="name_of_applicant" name="name_of_applicant" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="provincial_office" class="form-label">Provincial Office</label>
-                                <select class="form-control" id="provincial_office" name="provincial_office" required>
-                                    <option value="">Select Provincial Office</option>
-                                </select>
+                        <!-- Moved fields from Add Application Modal to Edit Modal -->
+                        <div class="form-group row mb-4">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="add_name_of_applicant">Applicant Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="add_name_of_applicant" name="name_of_applicant" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 d-none">
+                                        <div class="form-group">
+                                            <label for="provincial_office">Provincial Office</label>
+                                            <input type="text" class="form-control" id="provincial_office_id" name="provincial_office">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- All your existing edit form fields here -->
                         <!-- Initial Processing -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="editDateReceivedPO" class="form-label">Date Received by PO from SO Applicant</label>
-                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po_from_so_applicant">
+                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po_from_so_applicant" readonly >
                             </div>
                             <div class="col-md-6">
                                 <label for="editTypeOfApplication" class="form-label">Type of Application</label>
-                                <input type="text" class="form-control" id="editTypeOfApplication" name="type_of_application">
+                                <input type="text" class="form-control" id="editTypeOfApplication" name="type_of_application" readonly>
                             </div>
                         </div>
 
-                        <!-- Keep all your existing edit form fields -->
+                        <!-- Payment Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateOfPayment" class="form-label">Date of Payment</label>
+                                <input type="date" class="form-control" id="editDateOfPayment" name="date_of_payment" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editORNumber" class="form-label">O.R. Number</label>
+                                <input type="text" class="form-control" id="editORNumber" name="or_number" readonly>
+                                <input type="hidden" name="or_number_hidden" id="editORNumberHidden">
+                            </div>
+                        </div>
+                        <!-- RO Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateTransmittedRO" class="form-label">Date Transmitted to RO</label>
+                                <input type="date" class="form-control" id="editDateTransmittedRO" name="date_transmitted_to_ro" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateReceivedRO" class="form-label">Date Received by RO</label>
+                                <input type="date" class="form-control" id="editDateReceivedRO" name="date_received_by_ro" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Review Process -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedRO" class="form-label">Date Reviewed by RO Screener/SOIS Focal</label>
+                                <input type="date" class="form-control" id="editDateReviewedRO" name="ro_screener" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedOIC" class="form-label">Date Forwarded to OIC/CAO</label>
+                                <input type="date" class="form-control" id="editDateForwardedOIC" name="date_forwarded_to_the_office_of_oic" readonly>
+                            </div>
+                        </div>
+
+                        <!-- OIC Review -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedOIC" class="form-label">Date Reviewed by OIC CRASD</label>
+                                <input type="date" class="form-control" id="editDateReviewedOIC" name="date_reviewed_by_oic_crasd" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editFeedbacks" class="form-label">Feedbacks</label>
+                                <textarea class="form-control" id="editFeedbacks" name="feedbacks" readonly></textarea>
+                            </div>
+                        </div>
+
+                        <!-- ORD Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateForwardedORD" class="form-label">Date Forwarded to ORD</label>
+                                <input type="date" class="form-control" id="editDateForwardedORD" name="date_forwarded_to_ord" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateApprovedRD" class="form-label">Date Approved by Regional Director</label>
+                                <input type="date" class="form-control" id="editDateApprovedRD" name="date_application_approved_by_rd" readonly>
+                            </div>
+                        </div>
+
+                       <!-- CRASM Processing Card -->
+                        <div class="form-group row">
+                            <div class="col-md-12 mb-4">
+                                
+                                <div class="card card-box">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="editDateCrasmIssuance" class="form-label">Date Returned for CRASM Issuance</label>
+                                                    <input type="date" class="form-control" id="editDateCrasmIssuance" name="for_issuance_of_crasm">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="editDateTransmittalCRASM" class="form-label">Date for CRASM Transmittal</label>
+                                                    <input type="date" class="form-control" id="editDateTransmittalCRASM" name="for_transmittal_of_crasm">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Final Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateGeneratedCRASM" class="form-label">Date CRASM Generated</label>
+                                <input type="date" class="form-control" id="editDateGeneratedCRASM" name="date_crasm_generated" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedBackOIC" class="form-label">Date Forwarded Back to OIC/CAO</label>
+                                <input type="date" class="form-control" id="editDateForwardedBackOIC" name="date_forwarded_back_to_the_office_of_oic_cao" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Final Review -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedInitialedOIC" class="form-label">Date Reviewed & Initialed by OIC-CRASD</label>
+                                <input type="date" class="form-control" id="editDateReviewedInitialedOIC" name="date_reviewed_and_initialed_by_oic_crasd" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedBackORD" class="form-label">Date Forwarded Back to ORD</label>
+                                <input type="date" class="form-control" id="editDateForwardedBackORD" name="date_forwarded_back_to_ord" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Final Approval Card -->
+                        <div class="form-group row">
+                            <div class="col-md-12 mb-4">
+                           
+                                <div class="card card-box">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="editDateApprovedCRASM" class="form-label">Date CRASM Approved by RD</label>
+                                                    <input type="date" class="form-control" id="editDateApprovedCRASM" name="date_crasm_approved_by_rd">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="editDateTransmittedPO" class="form-label">Date Transmitted back to PO</label>
+                                                    <input type="date" class="form-control" id="editDateTransmittedPO" name="date_transmitted_back_to_po" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Final Status -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReceivedPO" class="form-label">Date Received by PO</label>
+                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateReleasedSO" class="form-label">Date Released to SO</label>
+                                <input type="date" class="form-control" id="editDateReleasedSO" name="date_released_to_so" readonly>
+                            </div>
+                        </div>
+                       <!-- Remarks -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="add_remarks">Remarks</label>
+                                <textarea class="form-control" 
+                                        id="add_remarks" 
+                                        name="remarks" 
+                                        rows="3" 
+                                        placeholder="Enter any additional remarks here..." 
+                                        readonly></textarea>
+                            </div>
+                        </div>
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -384,6 +725,8 @@ if (isset($_POST['logout'])) {
             </div>
         </div>
     </div>
+
+    <!-- modal -->
 
     <!-- js -->
     <script src="../vendors/scripts/core.js"></script>
@@ -396,96 +739,126 @@ if (isset($_POST['logout'])) {
     <script src="../src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
     <script src="../vendors/scripts/dashboard3.js"></script>
     <script src="../vendors/scripts/datatable-setting.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Edit form submission handler
-            document.getElementById('editUserForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const orNumber = document.getElementById('editORNumber').value;
-                document.getElementById('editORNumberHidden').value = orNumber;
-
-                if (validateForm(this)) {
-                    saveApplicationData(this);
-                }
-            });
-
-            // Add form submission handler
-            document.getElementById('addApplicationForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                if (validateForm(this)) {
-                    const formData = new FormData(this);
+  
+<script>
+$(document).ready(function() {
+    $('.edit-application').on('click', function(e) {
+        e.preventDefault();
+        const applicationId = $(this).data('id');
+        
+        $.ajax({
+            url: 'applicants_functions.php', // Update this path
+            type: 'POST',
+            data: {
+                action: 'get_application',
+                application_id: applicationId
+            },
+            success: function(response) {
+                try {
+                    const jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
                     
-                    fetch('process_application.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Success',
-                                text: 'Application added successfully!'
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: data.message || 'Failed to add application'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'An error occurred while adding the application'
-                        });
+                    if (jsonResponse.status === 'success') {
+                        // Populate form fields
+                        $('#editApplicationId').val(jsonResponse.data.application_id);
+                        $('#add_name_of_applicant').val(jsonResponse.data.name_of_applicant);
+                        $('#provincial_office_id').val(jsonResponse.data.provincial_office);
+                        $('#editDateReceivedPO').val(jsonResponse.data.date_received_by_po_from_so_applicant);
+                        $('#editTypeOfApplication').val(jsonResponse.data.type_of_application);
+                        $('#editDateOfPayment').val(jsonResponse.data.date_of_payment);
+                        $('#editORNumber').val(jsonResponse.data.or_number);
+                        $('#editDateTransmittedRO').val(jsonResponse.data.date_transmitted_to_ro);
+                        $('#editDateReceivedRO').val(jsonResponse.data.date_received_by_ro);
+                        $('#editDateReviewedRO').val(jsonResponse.data.ro_screener);
+                        $('#editDateForwardedOIC').val(jsonResponse.data.date_forwarded_to_the_office_of_oic);
+                        $('#editDateReviewedOIC').val(jsonResponse.data.date_reviewed_by_oic_crasd);
+                        $('#editFeedbacks').val(jsonResponse.data.feedbacks);
+                        $('#editDateForwardedORD').val(jsonResponse.data.date_forwarded_to_ord);
+                        $('#editDateApprovedRD').val(jsonResponse.data.date_application_approved_by_rd);
+                        $('#editDateCrasmIssuance').val(jsonResponse.data.for_issuance_of_crasm);
+                        $('#editDateTransmittalCRASM').val(jsonResponse.data.for_transmittal_of_crasm);
+                        $('#editDateGeneratedCRASM').val(jsonResponse.data.date_crasm_generated);
+                        $('#editDateForwardedBackOIC').val(jsonResponse.data.date_forwarded_back_to_the_office_of_oic_cao);
+                        $('#editDateReviewedInitialedOIC').val(jsonResponse.data.date_reviewed_and_initialed_by_oic_crasd);
+                        $('#editDateForwardedBackORD').val(jsonResponse.data.date_forwarded_back_to_ord);
+                        $('#editDateApprovedCRASM').val(jsonResponse.data.date_crasm_approved_by_rd);
+                        $('#editDateTransmittedPO').val(jsonResponse.data.date_transmitted_back_to_po);
+                        $('#editDateReceivedPO').val(jsonResponse.data.date_received_by_po);
+                        $('#editDateReleasedSO').val(jsonResponse.data.date_released_to_so);
+                        $('#add_remarks').val(jsonResponse.data.remarks);
+                        
+                        // Show modal
+                        $('#editUserModal').modal('show');
+                    } else {
+                        throw new Error(jsonResponse.message || 'Failed to fetch application data');
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: e.message
                     });
                 }
-            });
-
-            // Edit button click handlers
-            document.querySelectorAll('.edit-application').forEach(button => {
-                button.addEventListener('click', function() {
-                    const applicationId = this.dataset.id;
-                    loadApplicationData(applicationId);
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while fetching data'
                 });
-            });
-
-            // Load provincial offices for both forms
-            loadProvincialOffices();
-            populateAddFormProvincialOffices();
+                console.error('XHR Error:', error);
+                console.error('Response:', xhr.responseText);
+            }
         });
+    });
 
-        // Function to populate provincial offices in add form
-        function populateAddFormProvincialOffices() {
-            const select = document.getElementById('add_provincial_office');
-            fetch('get_provincial_offices.php')
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(office => {
-                        const option = document.createElement('option');
-                        option.value = office.province_id;
-                        option.textContent = office.provincial_office;
-                        select.appendChild(option);
+    // Handle Edit Form Submission
+    $('#editUserForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: 'applicants_functions.php', // Update this path
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                try {
+                    const jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
+                    
+                    if (jsonResponse.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Application updated successfully'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.reload();
+                            }
+                        });
+                    } else {
+                        throw new Error(jsonResponse.message || 'Failed to update application');
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: e.message
                     });
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        // Your existing form validation function
-        function validateForm(form) {
-            // Add your validation logic here
-            return true;
-        }
-    </script>
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while updating'
+                });
+            console.error('XHR Error:', error);
+                console.error('Response:', xhr.responseText);
+            }
+        });
+    });
+});
+</script>
 </body>
+
 </html>

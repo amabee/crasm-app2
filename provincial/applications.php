@@ -512,7 +512,7 @@ if (isset($_POST['logout'])) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title weight-500" id="addApplicationModalLabel">
-                        <i class="icon-copy dw dw-add"></i> Add New Application
+                        <i class="icon-copy dw dw-add"></i> Application to Solemnize Marriage
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -522,7 +522,6 @@ if (isset($_POST['logout'])) {
                     <form id="addApplicationForm" class="p-2">
                         <input type="hidden" name="action" value="create_application">
 
-                        <!-- Basic Information -->
                         <div class="form-group row">
                             <div class="col-md-12 mb-4">
                                 <label class="font-weight-bold">Basic Information</label>
@@ -536,10 +535,7 @@ if (isset($_POST['logout'])) {
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="add_type_of_application">Type of Application</label>
-                                                    <input type="text" class="form-control" id="add_type_of_application" name="type_of_application">
-                                                </div>
+                                                
                                             </div>
                                             <div class="col-md-6 d-none">
                                                 <div class="form-group">
@@ -552,18 +548,47 @@ if (isset($_POST['logout'])) {
                                 </div>
                             </div>
                         </div>
+                             <!-- Initial Processing -->
+                             <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReceivedPO" class="form-label">Date Received by PO from SO Applicant</label>
+                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po_from_so_applicant" >
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editTypeOfApplication" class="form-label">Type of Application</label>
+                                <input type="text" class="form-control" id="editTypeOfApplication" name="type_of_application" >
+                            </div>
+                        </div>
 
-                        <!-- Application Details -->
+                        <!-- Payment Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateOfPayment" class="form-label">Date of Payment</label>
+                                <input type="date" class="form-control" id="editDateOfPayment" name="date_of_payment" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editORNumber" class="form-label">O.R. Number</label>
+                                <input type="text" class="form-control" id="editORNumber" name="or_number" readonly>
+                                <input type="hidden" name="or_number_hidden" id="editORNumberHidden">
+                            </div>
+                        </div>
+                        <!-- RO Processing Card -->
                         <div class="form-group row">
                             <div class="col-md-12 mb-4">
-                                <label class="font-weight-bold">Application Details</label>
+                                <label class="font-weight-bold">RO Processing</label>
                                 <div class="card card-box">
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="add_date_received_po">Date Received by PO from SO Applicant</label>
-                                                    <input type="date" class="form-control" id="add_date_received_po" name="date_received_by_po_from_so_applicant">
+                                                    <label for="editDateTransmittedRO" class="form-label">Date Transmitted to RO</label>
+                                                    <input type="date" class="form-control" id="editDateTransmittedRO" name="date_transmitted_to_ro" >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="editDateReceivedRO" class="form-label">Date Received by RO</label>
+                                                    <input type="date" class="form-control" id="editDateReceivedRO" name="date_received_by_ro" readonly>
                                                 </div>
                                             </div>
                                         </div>
@@ -572,10 +597,118 @@ if (isset($_POST['logout'])) {
                             </div>
                         </div>
 
+                        <!-- Review Process -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedRO" class="form-label">Date Reviewed by RO Screener/SOIS Focal</label>
+                                <input type="date" class="form-control" id="editDateReviewedRO" name="ro_screener" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedOIC" class="form-label">Date Forwarded to OIC/CAO</label>
+                                <input type="date" class="form-control" id="editDateForwardedOIC" name="date_forwarded_to_the_office_of_oic" readonly>
+                            </div>
+                        </div>
+
+                        <!-- OIC Review -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedOIC" class="form-label">Date Reviewed by OIC CRASD</label>
+                                <input type="date" class="form-control" id="editDateReviewedOIC" name="date_reviewed_by_oic_crasd" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editFeedbacks" class="form-label">Feedbacks</label>
+                                <textarea class="form-control" id="editFeedbacks" name="feedbacks" readonly></textarea>
+                            </div>
+                        </div>
+
+                        <!-- ORD Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateForwardedORD" class="form-label">Date Forwarded to ORD</label>
+                                <input type="date" class="form-control" id="editDateForwardedORD" name="date_forwarded_to_ord" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateApprovedRD" class="form-label">Date Approved by Regional Director</label>
+                                <input type="date" class="form-control" id="editDateApprovedRD" name="date_application_approved_by_rd" readonly>
+                            </div>
+                        </div>
+
+                        <!-- CRASM Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateCrasmIssuance" class="form-label">Date Returned for CRASM Issuance</label>
+                                <input type="date" class="form-control" id="editDateCrasmIssuance" name="for_issuance_of_crasm" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateTransmittalCRASM" class="form-label">Date for CRASM Transmittal</label>
+                                <input type="date" class="form-control" id="editDateTransmittalCRASM" name="for_transmittal_of_crasm" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Final Processing -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateGeneratedCRASM" class="form-label">Date CRASM Generated</label>
+                                <input type="date" class="form-control" id="editDateGeneratedCRASM" name="date_crasm_generated" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedBackOIC" class="form-label">Date Forwarded Back to OIC/CAO</label>
+                                <input type="date" class="form-control" id="editDateForwardedBackOIC" name="date_forwarded_back_to_the_office_of_oic_cao" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Final Review -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateReviewedInitialedOIC" class="form-label">Date Reviewed & Initialed by OIC-CRASD</label>
+                                <input type="date" class="form-control" id="editDateReviewedInitialedOIC" name="date_reviewed_and_initialed_by_oic_crasd" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateForwardedBackORD" class="form-label">Date Forwarded Back to ORD</label>
+                                <input type="date" class="form-control" id="editDateForwardedBackORD" name="date_forwarded_back_to_ord" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Final Approval -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editDateApprovedCRASM" class="form-label">Date CRASM Approved by RD</label>
+                                <input type="date" class="form-control" id="editDateApprovedCRASM" name="date_crasm_approved_by_rd" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDateTransmittedPO" class="form-label">Date Transmitted back to PO</label>
+                                <input type="date" class="form-control" id="editDateTransmittedPO" name="date_transmitted_back_to_po" readonly>
+                            </div>
+                        </div>
+<!-- Final Status Card -->
+<div class="form-group row">
+    <div class="col-md-12 mb-4">
+        <label class="font-weight-bold">Final Status</label>
+        <div class="card card-box">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="editDateReceivedPO" class="form-label">Date Received by PO</label>
+                            <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po" >
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="editDateReleasedSO" class="form-label">Date Released to SO</label>
+                            <input type="date" class="form-control" id="editDateReleasedSO" name="date_released_to_so" >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
                         <!-- Remarks -->
                         <div class="form-group row">
                             <div class="col-md-12">
-                                <label class="font-weight-bold">Additional Information</label>
+                            
                                 <div class="card card-box">
                                     <div class="card-body">
                                         <div class="form-group mb-0">
@@ -618,25 +751,20 @@ if (isset($_POST['logout'])) {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="name_of_applicant" class="form-label">Applicant Name</label>
-                                <input type="text" class="form-control" id="name_of_applicant" name="name_of_applicant" required>
+                                <input type="text" class="form-control" id="name_of_applicant" name="name_of_applicant" >
                             </div>
-                            <div class="col-md-6">
-                                <label for="provincial_office" class="form-label">Provincial Office</label>
-                                <select class="form-control" id="provincial_office" name="provincial_office" required>
-                                    <option value="">Select Provincial Office</option>
-                                </select>
-                            </div>
+                            
                         </div>
 
                         <!-- Initial Processing -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="editDateReceivedPO" class="form-label">Date Received by PO from SO Applicant</label>
-                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po_from_so_applicant" required>
+                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po_from_so_applicant" >
                             </div>
                             <div class="col-md-6">
                                 <label for="editTypeOfApplication" class="form-label">Type of Application</label>
-                                <input type="text" class="form-control" id="editTypeOfApplication" name="type_of_application" required>
+                                <input type="text" class="form-control" id="editTypeOfApplication" name="type_of_application" >
                             </div>
                         </div>
 
@@ -644,11 +772,11 @@ if (isset($_POST['logout'])) {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="editDateOfPayment" class="form-label">Date of Payment</label>
-                                <input type="date" class="form-control" id="editDateOfPayment" name="date_of_payment" required>
+                                <input type="date" class="form-control" id="editDateOfPayment" name="date_of_payment" readonly>
                             </div>
                             <div class="col-md-6">
                                 <label for="editORNumber" class="form-label">O.R. Number</label>
-                                <input type="text" class="form-control" id="editORNumber" name="or_number" required>
+                                <input type="text" class="form-control" id="editORNumber" name="or_number" readonly>
                                 <input type="hidden" name="or_number_hidden" id="editORNumberHidden">
                             </div>
                         </div>
@@ -657,7 +785,7 @@ if (isset($_POST['logout'])) {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="editDateTransmittedRO" class="form-label">Date Transmitted to RO</label>
-                                <input type="date" class="form-control" id="editDateTransmittedRO" name="date_transmitted_to_ro" required>
+                                <input type="date" class="form-control" id="editDateTransmittedRO" name="date_transmitted_to_ro" >
                             </div>
                             <div class="col-md-6">
                                 <label for="editDateReceivedRO" class="form-label">Date Received by RO</label>
@@ -753,11 +881,11 @@ if (isset($_POST['logout'])) {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="editDateReceivedPO" class="form-label">Date Received by PO</label>
-                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po" required>
+                                <input type="date" class="form-control" id="editDateReceivedPO" name="date_received_by_po" >
                             </div>
                             <div class="col-md-6">
                                 <label for="editDateReleasedSO" class="form-label">Date Released to SO</label>
-                                <input type="date" class="form-control" id="editDateReleasedSO" name="date_released_to_so" required>
+                                <input type="date" class="form-control" id="editDateReleasedSO" name="date_released_to_so" >
                             </div>
                         </div>
 
@@ -765,7 +893,7 @@ if (isset($_POST['logout'])) {
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label for="editRemarks" class="form-label">Remarks</label>
-                                <textarea class="form-control" id="editRemarks" name="remarks" rows="3" required></textarea>
+                                <textarea class="form-control" id="editRemarks" name="remarks" rows="3" ></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -793,6 +921,174 @@ if (isset($_POST['logout'])) {
     <script src="../vendors/scripts/datatable-setting.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+<script>
+// Save this as process.js
+$(document).ready(function() {
+    // Handle Add Application Form Submission
+    $('#addApplicationForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Set the provincial office value from session
+        $('#provincial_office_id').val('<?php echo $_SESSION['provincial_office']; ?>');
+        
+        $.ajax({
+            url: 'applicants_functions.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                try {
+                    // Try to parse the response as JSON
+                    const jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
+                    
+                    if (jsonResponse.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Application added successfully'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.reload();
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: jsonResponse.message || 'Failed to add application'
+                        });
+                    }
+                } catch (e) {
+                    // If JSON parsing fails, check if it's an HTML error response
+                    if (typeof response === 'string' && response.includes('</b>')) {
+                        // Extract error message from HTML
+                        const errorMessage = response.split('</b>')[1].split('<br')[0].trim();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server Error',
+                            text: errorMessage || 'An error occurred while processing your request'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Invalid response from server'
+                        });
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while processing your request'
+                });
+                console.error('XHR Error:', error);
+                console.error('Response:', xhr.responseText);
+            }
+        });
+    });
+
+    // Handle Edit Application Button Click - with improved error handling
+    $('.edit-application').on('click', function(e) {
+        e.preventDefault();
+        const applicationId = $(this).data('id');
+        
+        $.ajax({
+            url: 'applicants_functions.php',
+            type: 'POST',
+            data: {
+                action: 'get_application',
+                application_id: applicationId
+            },
+            success: function(response) {
+                try {
+                    const jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
+                    
+                    if (jsonResponse.status === 'success') {
+                        // Populate form fields
+                        $('#editApplicationId').val(jsonResponse.data.application_id);
+                        $('#name_of_applicant').val(jsonResponse.data.name_of_applicant);
+                        $('#provincial_office').val(jsonResponse.data.provincial_office);
+                        $('#editDateReceivedPO').val(jsonResponse.data.date_received_by_po_from_so_applicant);
+                        $('#editTypeOfApplication').val(jsonResponse.data.type_of_application);
+                        $('#editDateTransmittedRO').val(jsonResponse.data.date_transmitted_to_ro);
+                        $('#editDateReceivedRO').val(jsonResponse.data.date_received_by_ro);
+                        $('#editDateReceivedPO').val(jsonResponse.data.date_received_by_po);
+                        $('#editDateReleasedSO').val(jsonResponse.data.date_released_to_so);
+                        $('#editRemarks').val(jsonResponse.data.remarks);
+                        
+                        // Show modal
+                        $('#editUserModal').modal('show');
+                    } else {
+                        throw new Error(jsonResponse.message || 'Failed to fetch application data');
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: e.message
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while fetching data'
+                });
+                console.error('XHR Error:', error);
+                console.error('Response:', xhr.responseText);
+            }
+        });
+    });
+
+    // Handle Edit Form Submission - with improved error handling
+    $('#editUserForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: 'applicants_functions.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                try {
+                    const jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
+                    
+                    if (jsonResponse.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Application updated successfully'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.reload();
+                            }
+                        });
+                    } else {
+                        throw new Error(jsonResponse.message || 'Failed to update application');
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: e.message
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while updating'
+                });
+                console.error('XHR Error:', error);
+                console.error('Response:', xhr.responseText);
+            }
+        });
+    });
+});
+</script>
 </body>
 
 </html>

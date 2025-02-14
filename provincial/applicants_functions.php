@@ -2,136 +2,192 @@
 session_start();
 include_once "../configs/config.php";
 
-// Response handler function
-function sendJsonResponse($status, $message, $data = null)
-{
-    header('Content-Type: application/json');
-    $response = ['status' => $status, 'message' => $message];
-    if ($data) {
-        $response['data'] = $data;
-    }
-    echo json_encode($response);
-    exit;
-}
+// Set headers for JSON response
+header('Content-Type: application/json');
 
-function getProvincialOffices($conn)
-{
-    try {
-        $sql = "SELECT province_id, provincial_office FROM provincial_office ORDER BY provincial_office";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        throw new Exception('Error fetching provincial offices: ' . $e->getMessage());
-    }
-}
-
-function createApplication($conn, $data)
-{
-    try {
-        $sql = "INSERT INTO applications (name_of_applicant, provincial_office, date_created) 
-                VALUES (?, ?, NOW())";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            $data['name_of_applicant'],
-            $data['provincial_office']
-        ]);
-
-        return $conn->lastInsertId();
-    } catch (PDOException $e) {
-        throw new Exception('Error creating application: ' . $e->getMessage());
-    }
-}
-
-function getApplication($conn, $applicationId)
-{
-    try {
-        $sql = "SELECT * FROM applications WHERE application_id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$applicationId]);
-        $application = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$application) {
-            throw new Exception('Application not found: ' . $applicationId);
-        }
-
-        return $application;
-    } catch (PDOException $e) {
-        throw new Exception('Error fetching application: ' . $e->getMessage());
-    }
-}
-
-function updateApplication($conn, $data)
-{
-    try {
-        $sql = "UPDATE applications SET 
-            date_application_approved_by_rd = ?,
-            for_issuance_of_crasm = ?,
-            for_transmittal_of_crasm = ?,
-            date_crasm_approved_by_rd = ?,
-            last_updated = NOW()
-            WHERE application_id = ?";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            $data['name_of_applicant'],
-            $data['provincial_office'],
-            !empty($data['date_application_approved_by_rd']) ? $data['date_application_approved_by_rd'] : null,
-            !empty($data['for_issuance_of_crasm']) ? $data['for_issuance_of_crasm'] : null,
-            !empty($data['for_transmittal_of_crasm']) ? $data['for_transmittal_of_crasm'] : null,
-            !empty($data['date_crasm_approved_by_rd']) ? $data['date_crasm_approved_by_rd'] : null,
-            $data['application_id']
-        ]);
-
-        return true;
-    } catch (PDOException $e) {
-        throw new Exception('Error updating application: ' . $e->getMessage());
-    }
-}
-
-
-// Handle POST requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        if (isset($_POST['action'])) {
-            switch ($_POST['action']) {
-                case 'create_application':
-                    if (empty($_POST['name_of_applicant'])) {
-                        throw new Exception("Applicant name is required");
-                    }
-                    $applicationId = createApplication($conn, $_POST);
-                    sendJsonResponse('success', 'Application created successfully', ['id' => $applicationId]);
-                    break;
+    $action = $_POST['action'] ?? '';
 
-                case 'get_provincial_offices':
-                    $offices = getProvincialOffices($conn);
-                    sendJsonResponse('success', 'Provincial offices fetched successfully', ['offices' => $offices]);
-                    break;
+    switch ($action) {
+        case 'create_application':
+            try {
+                // Get provincial office from session
+                $provincial_office = $_SESSION['provincial_office'] ?? null;
+                
+                if (!$provincial_office) {
+                    throw new Exception("Provincial office not found in session");
+                }
 
-                case 'get_application':
-                    if (empty($_POST['application_id'])) {
-                        throw new Exception("Application ID is required");
-                    }
-                    $application = getApplication($conn, $_POST['application_id']);
-                    sendJsonResponse('success', 'Application fetched successfully', $application);
-                    break;
+                $sql = "INSERT INTO applications (
+                    name_of_applicant,
+                    provincial_office,
+                    date_received_by_po_from_so_applicant,
+                    type_of_application,
+                    date_of_payment,
+                    or_number,
+                    date_transmitted_to_ro,
+                    date_received_by_ro,
+                    ro_screener,
+                    date_forwarded_to_the_office_of_oic,
+                    date_reviewed_by_oic_crasd,
+                    feedbacks,
+                    date_forwarded_to_ord,
+                    date_application_approved_by_rd,
+                    for_issuance_of_crasm,
+                    for_transmittal_of_crasm,
+                    date_crasm_generated,
+                    date_forwarded_back_to_the_office_of_oic_cao,
+                    date_reviewed_and_initialed_by_oic_crasd,
+                    date_forwarded_back_to_ord,
+                    date_crasm_approved_by_rd,
+                    date_transmitted_back_to_po,
+                    date_received_by_po,
+                    date_released_to_so,
+                    remarks,
+                    date_created
+                ) VALUES (
+                    :name_of_applicant,
+                    :provincial_office,
+                    :date_received_by_po_from_so_applicant,
+                    :type_of_application,
+                    :date_of_payment,
+                    :or_number,
+                    :date_transmitted_to_ro,
+                    :date_received_by_ro,
+                    :ro_screener,
+                    :date_forwarded_to_the_office_of_oic,
+                    :date_reviewed_by_oic_crasd,
+                    :feedbacks,
+                    :date_forwarded_to_ord,
+                    :date_application_approved_by_rd,
+                    :for_issuance_of_crasm,
+                    :for_transmittal_of_crasm,
+                    :date_crasm_generated,
+                    :date_forwarded_back_to_the_office_of_oic_cao,
+                    :date_reviewed_and_initialed_by_oic_crasd,
+                    :date_forwarded_back_to_ord,
+                    :date_crasm_approved_by_rd,
+                    :date_transmitted_back_to_po,
+                    :date_received_by_po,
+                    :date_released_to_so,
+                    :remarks,
+                    NOW()
+                )";
 
-                case 'update_application':
-                    if (empty($_POST['application_id'])) {
-                        throw new Exception("Application ID is required");
-                    }
-                    updateApplication($conn, $_POST);
-                    sendJsonResponse('success', 'Application updated successfully');
-                    break;
+                $stmt = $conn->prepare($sql);
+                
+                // Bind parameters
+                $stmt->bindParam(':name_of_applicant', $_POST['name_of_applicant']);
+                $stmt->bindParam(':provincial_office', $provincial_office);
+                $stmt->bindParam(':date_received_by_po_from_so_applicant', $_POST['date_received_by_po_from_so_applicant']);
+                $stmt->bindParam(':type_of_application', $_POST['type_of_application']);
+                $stmt->bindParam(':date_of_payment', $_POST['date_of_payment']);
+                $stmt->bindParam(':or_number', $_POST['or_number']);
+                $stmt->bindParam(':date_transmitted_to_ro', $_POST['date_transmitted_to_ro']);
+                $stmt->bindParam(':date_received_by_ro', $_POST['date_received_by_ro']);
+                $stmt->bindParam(':ro_screener', $_POST['ro_screener']);
+                $stmt->bindParam(':date_forwarded_to_the_office_of_oic', $_POST['date_forwarded_to_the_office_of_oic']);
+                $stmt->bindParam(':date_reviewed_by_oic_crasd', $_POST['date_reviewed_by_oic_crasd']);
+                $stmt->bindParam(':feedbacks', $_POST['feedbacks']);
+                $stmt->bindParam(':date_forwarded_to_ord', $_POST['date_forwarded_to_ord']);
+                $stmt->bindParam(':date_application_approved_by_rd', $_POST['date_application_approved_by_rd']);
+                $stmt->bindParam(':for_issuance_of_crasm', $_POST['for_issuance_of_crasm']);
+                $stmt->bindParam(':for_transmittal_of_crasm', $_POST['for_transmittal_of_crasm']);
+                $stmt->bindParam(':date_crasm_generated', $_POST['date_crasm_generated']);
+                $stmt->bindParam(':date_forwarded_back_to_the_office_of_oic_cao', $_POST['date_forwarded_back_to_the_office_of_oic_cao']);
+                $stmt->bindParam(':date_reviewed_and_initialed_by_oic_crasd', $_POST['date_reviewed_and_initialed_by_oic_crasd']);
+                $stmt->bindParam(':date_forwarded_back_to_ord', $_POST['date_forwarded_back_to_ord']);
+                $stmt->bindParam(':date_crasm_approved_by_rd', $_POST['date_crasm_approved_by_rd']);
+                $stmt->bindParam(':date_transmitted_back_to_po', $_POST['date_transmitted_back_to_po']);
+                $stmt->bindParam(':date_received_by_po', $_POST['date_received_by_po']);
+                $stmt->bindParam(':date_released_to_so', $_POST['date_released_to_so']);
+                $stmt->bindParam(':remarks', $_POST['remarks']);
 
-                default:
-                    throw new Exception("Invalid action specified");
+                if ($stmt->execute()) {
+                    echo json_encode(['status' => 'success', 'message' => 'Application created successfully']);
+                } else {
+                    throw new Exception("Error executing SQL statement");
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Error creating application: ' . $e->getMessage()
+                ]);
             }
-        } else {
-            throw new Exception("No action specified");
-        }
-    } catch (Exception $e) {
-        sendJsonResponse('error', $e->getMessage());
+            break;
+
+        case 'update_application':
+            try {
+                $sql = "UPDATE applications SET 
+                    name_of_applicant = :name_of_applicant,
+                    date_received_by_po_from_so_applicant = :date_received_by_po_from_so_applicant,
+                    type_of_application = :type_of_application,
+                    date_transmitted_to_ro = :date_transmitted_to_ro,
+                    date_received_by_ro = :date_received_by_ro,
+                    date_received_by_po = :date_received_by_po,
+                    date_released_to_so = :date_released_to_so,
+                    remarks = :remarks 
+                    WHERE application_id = :application_id";
+
+                $stmt = $conn->prepare($sql);
+                
+                // Bind parameters
+                $stmt->bindParam(':application_id', $_POST['application_id']);
+                $stmt->bindParam(':name_of_applicant', $_POST['name_of_applicant']);
+                $stmt->bindParam(':date_received_by_po_from_so_applicant', $_POST['date_received_by_po_from_so_applicant']);
+                $stmt->bindParam(':type_of_application', $_POST['type_of_application']);
+                $stmt->bindParam(':date_transmitted_to_ro', $_POST['date_transmitted_to_ro']);
+                $stmt->bindParam(':date_received_by_ro', $_POST['date_received_by_ro']);
+                $stmt->bindParam(':date_received_by_po', $_POST['date_received_by_po']);
+                $stmt->bindParam(':date_released_to_so', $_POST['date_released_to_so']);
+                $stmt->bindParam(':remarks', $_POST['remarks']);
+
+                if ($stmt->execute()) {
+                    echo json_encode(['status' => 'success', 'message' => 'Application updated successfully']);
+                } else {
+                    throw new Exception("Error executing SQL statement");
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Error updating application: ' . $e->getMessage()
+                ]);
+            }
+            break;
+
+        case 'get_application':
+            try {
+                $sql = "SELECT * FROM applications WHERE application_id = :application_id";
+                $stmt = $conn->prepare($sql);
+                $stmt->bindParam(':application_id', $_POST['application_id']);
+                $stmt->execute();
+                
+                $application = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($application) {
+                    echo json_encode(['status' => 'success', 'data' => $application]);
+                } else {
+                    throw new Exception("Application not found");
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Error fetching application: ' . $e->getMessage()
+                ]);
+            }
+            break;
+
+        default:
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Invalid action specified'
+            ]);
+            break;
     }
+} else {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid request method'
+    ]);
 }
+?>

@@ -105,20 +105,34 @@ function updateUser($conn, $userData)
                 middle_name = ?, 
                 last_name = ?, 
                 email = ?, 
+                username = ?,
                 role_id = ?,
-                status = ?
-                WHERE id = ?";
+                status = ?";
 
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
+        $params = [
             $userData['firstname'],
             $userData['middlename'],
             $userData['lastname'],
             $userData['email'],
+            $userData['username'],
             $roleId,
-            $userData['status'],
-            $userData['user_id']
-        ]);
+            $userData['status']
+        ];
+
+        if ($roleId == 6 || $roleId == 5) {
+            if (!empty($userData['provincial_office'])) {
+                $sql .= ", provincial_office = ?";
+                $params[] = $userData['provincial_office'];
+            }
+        } else {
+            $sql .= ", provincial_office = NULL";
+        }
+
+        $sql .= " WHERE id = ?";
+        $params[] = $userData['user_id'];
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
 
         return true;
     } catch (PDOException $e) {
@@ -204,6 +218,30 @@ function updateUserAccount($conn, $userId, $userData)
     }
 }
 
+function getProvincialOffices($conn)
+{
+    try {
+        $sql = "SELECT province_id, provincial_office FROM provincial_office";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $offices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response = [
+            'status' => 'success',
+            'data' => [
+                'offices' => $offices
+            ]
+        ];
+    } catch (PDOException $e) {
+        $response = [
+            'status' => 'error',
+            'message' => 'Error fetching provincial offices: ' . $e->getMessage()
+        ];
+    }
+
+    echo json_encode($response);
+}
+
 // END OF USER ACCOUNT FUNCTIONS
 
 // START OF SYSTEM SETTINGS
@@ -281,6 +319,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (isset($_POST['action'])) {
             switch ($_POST['action']) {
+
+                case 'get_provincial_offices':
+                    getProvincialOffices($conn);
+                    break;
+
                 case 'get_user':
                     if (empty($_POST['userId'])) {
                         throw new Exception("User ID is required");

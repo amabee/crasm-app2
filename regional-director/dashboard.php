@@ -15,7 +15,6 @@ if (isset($_SESSION['role_id'])) {
             header("Location: ../admin/dashboard.php");
             break;
         case 3:
-           
             break;
         case 4:
             header("Location: ../cao/dashboard.php");
